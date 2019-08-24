@@ -35,6 +35,8 @@ module.exports = {
 			'always-multiline',
 		],
 		'no-tabs': 'off',
+		'sort-keys': LEVEL_ERROR,
+		'sort-imports': LEVEL_ERROR,
 	},
 	parserOptions: {
 		parser: 'babel-eslint',
