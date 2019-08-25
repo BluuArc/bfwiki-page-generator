@@ -1,3 +1,5 @@
+import LocalStorageStore from '@/utilities/LocalStorageStore';
+import { SETTING_KEYS } from '@/utilities/constants';
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib';
 
@@ -8,6 +10,7 @@ export default new Vuetify({
 		iconfont: 'fa',
 	},
 	theme: {
+		dark: !LocalStorageStore.getBoolean(SETTING_KEYS.USE_LIGHT_THEME),
 		themes: {
 			light: {
 				/* eslint-disable sort-keys */

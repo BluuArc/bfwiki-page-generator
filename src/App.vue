@@ -8,11 +8,21 @@
 </template>
 
 <script>
+import { SETTING_KEYS } from '@/utilities/constants';
 import TopAppBar from '@/components/MainShell/TopAppBar';
+import localStorageStore from '@/utilities/LocalStorageStore';
 
 export default {
 	components: {
 		TopAppBar,
+	},
+	created () {
+		localStorageStore.addEventListener(this, () => {
+			const storedThemeValue = localStorageStore.getBoolean(SETTING_KEYS.USE_LIGHT_THEME);
+			if (!storedThemeValue !== this.$vuetify.theme.dark) {
+				this.$vuetify.theme.dark = !storedThemeValue;
+			}
+		});
 	},
 	data: () => ({
 		//
