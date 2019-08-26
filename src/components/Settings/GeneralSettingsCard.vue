@@ -3,7 +3,7 @@
 		<v-card-title>General Settings</v-card-title>
 		<v-card-text>
 			<form>
-				<v-container fluid>
+				<v-container fluid class="pt-0">
 					<v-row align="baseline" class="settings-row">
 						<v-label>
 							Light Mode

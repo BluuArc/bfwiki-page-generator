@@ -12,6 +12,9 @@ export default new Vuetify({
 	theme: {
 		dark: !LocalStorageStore.getBoolean(SETTING_KEYS.USE_LIGHT_THEME),
 		themes: {
+			dark: {
+				error: '#FF9999',
+			},
 			light: {
 				/* eslint-disable sort-keys */
 				primary: '#ee44aa',

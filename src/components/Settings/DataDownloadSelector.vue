@@ -1,5 +1,5 @@
 <template>
-	<ul class="data-download-selector-list">
+	<ul id="data-download-selector-list">
 		<li v-for="pair in dataNameKeyPairs" :key="pair.name">
 			<v-layout row wrap align-baseline>
 				<v-flex xs12 sm3>
@@ -12,26 +12,63 @@
 					:key="server"
 					xs4 sm3
 				>
+					<!-- TODO: implement date display -->
 					<v-checkbox
 						v-model="pairsToDownload"
 						:value="createPairKey(pair.key, server)"
 						:label="server"
-						:aria-label="`Download ${server} data for ${pair.name}`"
+						:aria-label="`Select data for ${pair.name} from ${server} server`"
+						hint="No data found."
+						persistent-hint
 					/>
 				</v-flex>
 			</v-layout>
+		</li>
+		<li class="py-2">
+			<v-layout row wrap align-baseline>
+				<v-flex xs12 sm3>
+					<v-label>
+						Select All
+					</v-label>
+				</v-flex>
+				<v-flex
+					v-for="server in servers"
+					:key="server"
+					xs4 sm3
+				>
+					<v-btn
+						outlined
+						@click="addEntriesForServer(server)"
+						:aria-label="`Select all data for ${server} server`"
+					>
+						{{ server }}
+					</v-btn>
+				</v-flex>
+			</v-layout>
+		</li>
+		<li class="py-2 pl-0" id="clear-data-download-area">
+			<v-btn
+				block
+				outlined
+				:disabled="pairsToDownload.length === 0"
+				@click="pairsToDownload = []"
+			>
+				Clear Selection
+			</v-btn>
 		</li>
 	</ul>
 </template>
 
 <script>
 import { DATA_MAPPING, SERVERS } from '@/utilities/constants';
+import { arraysAreIdentical, stringCompare } from '@/utilities/comparisons';
 
 export default {
 	computed: {
 		dataNameKeyPairs () {
 			return Object.keys(DATA_MAPPING)
-				.map(key => ({ key, name: DATA_MAPPING[key].name }));
+				.map(key => ({ key, name: DATA_MAPPING[key].name }))
+				.sort((a, b) => stringCompare(a.name, b.name));
 		},
 		servers () {
 			return SERVERS.slice();
@@ -43,15 +80,49 @@ export default {
 		};
 	},
 	methods: {
+		addEntriesForServer (server) {
+			const { dataNameKeyPairs, createPairKey, pairsToDownload } = this;
+			dataNameKeyPairs.forEach(({ key }) => {
+				const pairKey = createPairKey(key, server);
+				if (!pairsToDownload.includes(pairKey)) {
+					pairsToDownload.push(pairKey);
+				}
+			});
+		},
 		createPairKey (key, server) {
 			return `${key}-${server}`;
+		},
+	},
+	props: {
+		value: {
+			default: () => [],
+			type: Array,
+		},
+	},
+	watch: {
+		pairsToDownload (newValue) {
+			if (!arraysAreIdentical(newValue, this.value)) {
+				this.$emit('input', newValue);
+			}
+		},
+		value: {
+			handler (newValue) {
+				this.pairsToDownload = Array.isArray(newValue)
+					? newValue.slice()
+					: [];
+			},
+			immediate: true,
 		},
 	},
 };
 </script>
 
 <style lang="scss">
-ul.data-download-selector-list {
+ul#data-download-selector-list {
 	list-style: none;
+
+	#clear-data-download-area {
+		margin-left: -24px;
+	}
 }
 </style>
