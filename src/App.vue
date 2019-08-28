@@ -10,6 +10,7 @@
 <script>
 import { SETTING_KEYS } from '@/utilities/constants';
 import TopAppBar from '@/components/MainShell/TopAppBar';
+import getLogger from '@/utilities/Logger';
 import localStorageStore from '@/utilities/LocalStorageStore';
 
 export default {
@@ -27,6 +28,10 @@ export default {
 	data: () => ({
 		//
 	}),
+	mounted () {
+		const logger = getLogger('APP');
+		logger.debug('Mounted');
+	},
 	name: 'App',
 };
 </script>
