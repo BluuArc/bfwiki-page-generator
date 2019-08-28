@@ -1,5 +1,6 @@
+const ThreadsPlugin = require('threads-plugin');
+
 module.exports = {
-	publicPath: './',
 	configureWebpack: config => {
 		if (process.env.NODE_ENV !== 'production') {
 			// custom output config to allow HMR on workers
@@ -9,6 +10,8 @@ module.exports = {
 			config.output.libraryExport = 'default';
 			config.output.libraryTarget = 'self';
 		}
+		config.plugins.unshift(new ThreadsPlugin());
 	},
 	outputDir: 'dist/bf-wiki-page-generator',
+	publicPath: './',
 };

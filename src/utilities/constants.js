@@ -2,8 +2,11 @@ export const SERVERS = Object.freeze(['GL', 'EU', 'JP']);
 
 export const SERVER_NAME_MAPPING = Object.freeze({
 	EU: 'Europe',
+	Europe: 'EU',
 	GL: 'Global',
+	Global: 'GL',
 	JP: 'Japan',
+	Japan: 'JP',
 });
 
 export const DATA_MAPPING = Object.freeze({
@@ -49,3 +52,5 @@ export const SETTING_KEYS = Object.freeze({
 	DEFAULT_SERVER: 'defaultServer',
 	USE_LIGHT_THEME: 'useLightTheme',
 });
+
+export const BASE_DATAMINE_URL = 'https://raw.githubusercontent.com/cheahjs/bravefrontier_data/master';

@@ -92,5 +92,12 @@ export class BfDatabase {
 		return this._db;
 	}
 
+	ping () {
+		logger.debug('got ping', this);
+		return 'pong';
+	}
+
 	// TODO: getById and getByIds
 }
+
+export default new BfDatabase(dbInstance);

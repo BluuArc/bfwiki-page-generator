@@ -10,28 +10,35 @@
 <script>
 import { SETTING_KEYS } from '@/utilities/constants';
 import TopAppBar from '@/components/MainShell/TopAppBar';
-import getLogger from '@/utilities/Logger';
+import getLogger, { isDebugMode } from '@/utilities/Logger'; // eslint-disable-line sort-imports
+import bfDatabase from '@/utilities/BfDatabase/index.client';
 import localStorageStore from '@/utilities/LocalStorageStore';
 
 export default {
 	components: {
 		TopAppBar,
 	},
-	created () {
+	async created () {
 		localStorageStore.addEventListener(this, () => {
 			const storedThemeValue = localStorageStore.getBoolean(SETTING_KEYS.USE_LIGHT_THEME);
 			if (!storedThemeValue !== this.$vuetify.theme.dark) {
 				this.$vuetify.theme.dark = !storedThemeValue;
 			}
 		});
+
+		const logger = getLogger('APP');
+		if (isDebugMode()) {
+			logger.debug('Debug Mode enabled. Adding debug object to window._bfDebug');
+			window._bfDebug = {
+				localStorageStore,
+				logger: getLogger('DevTools'),
+				worker: await bfDatabase,
+			};
+		}
 	},
 	data: () => ({
 		//
 	}),
-	mounted () {
-		const logger = getLogger('APP');
-		logger.debug('Mounted');
-	},
 	name: 'App',
 };
 </script>

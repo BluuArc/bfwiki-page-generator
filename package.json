@@ -12,6 +12,7 @@
 		"core-js": "^2.6.5",
 		"dexie": "^2.0.4",
 		"roboto-fontface": "*",
+		"threads": "^1.0.0-beta.5",
 		"vue": "^2.6.10",
 		"vue-router": "^3.0.3",
 		"vuetify": "^2.0.0",
@@ -28,6 +29,7 @@
 		"node-sass": "^4.9.0",
 		"sass": "^1.17.4",
 		"sass-loader": "^7.1.0",
+		"threads-plugin": "^1.0.0",
 		"vue-cli-plugin-vuetify": "^0.6.3",
 		"vue-template-compiler": "^2.6.10",
 		"vuetify-loader": "^1.2.2"
