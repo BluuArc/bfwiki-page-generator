@@ -22,8 +22,8 @@ export class BfDatabase {
 	 * @param {Array<string>?} arg0.props properties to return from the table entry; pass empty array or leave out to return everything
 	 * @returns {Promise<any|undefined>} returns the first entry that matches the given key, otherwise returns undefined
 	 */
-	get ({ table, key, props = [] }) {
-		let result = this._db.table(table).get(key);
+	async get ({ table, key, props = [] }) {
+		let result = await this._db.table(table).get(key);
 		if (result && Array.isArray(props) && props.length > 0) {
 			result = props.reduce((acc, prop) => {
 				acc[prop] = result[prop];

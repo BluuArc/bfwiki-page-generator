@@ -12,6 +12,7 @@ import { SETTING_KEYS } from '@/utilities/constants';
 import TopAppBar from '@/components/MainShell/TopAppBar';
 import getLogger, { isDebugMode } from '@/utilities/Logger'; // eslint-disable-line sort-imports
 import bfDatabase from '@/utilities/BfDatabase/index.client';
+import downloader from '@/utilities/BfDatabase/downloader/index.client';
 import localStorageStore from '@/utilities/LocalStorageStore';
 
 export default {
@@ -30,6 +31,7 @@ export default {
 		if (isDebugMode()) {
 			logger.debug('Debug Mode enabled. Adding debug object to window._bfDebug');
 			window._bfDebug = {
+				downloader: await downloader,
 				localStorageStore,
 				logger: getLogger('DevTools'),
 				worker: await bfDatabase,
