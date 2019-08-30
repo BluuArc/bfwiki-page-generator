@@ -1,19 +1,24 @@
 const LEVEL_ERROR = 'error';
 
 module.exports = {
-	root: true,
 	env: {
-		node: true,
 		browser: true,
+		node: true,
 	},
 	extends: [
 		'eslint:recommended',
 		'plugin:vue/essential',
 		'@vue/standard',
 	],
+	parserOptions: {
+		parser: 'babel-eslint',
+	},
+	root: true,
 	rules: {
-		'no-console': process.env.NODE_ENV === 'production' ? LEVEL_ERROR : 'warn',
-		'no-debugger': process.env.NODE_ENV === 'production' ? LEVEL_ERROR : 'warn',
+		'comma-dangle': [
+			LEVEL_ERROR,
+			'always-multiline',
+		],
 		'indent': [
 			LEVEL_ERROR,
 			'tab',
@@ -22,6 +27,9 @@ module.exports = {
 			LEVEL_ERROR,
 			'unix',
 		],
+		'no-console': process.env.NODE_ENV === 'production' ? LEVEL_ERROR : 'warn',
+		'no-debugger': process.env.NODE_ENV === 'production' ? LEVEL_ERROR : 'warn',
+		'no-tabs': 'off',
 		'quotes': [
 			LEVEL_ERROR,
 			'single',
@@ -30,15 +38,7 @@ module.exports = {
 			LEVEL_ERROR,
 			'always',
 		],
-		'comma-dangle': [
-			LEVEL_ERROR,
-			'always-multiline',
-		],
-		'no-tabs': 'off',
-		'sort-keys': LEVEL_ERROR,
 		'sort-imports': LEVEL_ERROR,
-	},
-	parserOptions: {
-		parser: 'babel-eslint',
+		'sort-keys': LEVEL_ERROR,
 	},
 };
