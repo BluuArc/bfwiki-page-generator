@@ -45,3 +45,9 @@ export default {
 	name: 'App',
 };
 </script>
+
+<style lang="scss">
+html {
+	overflow: auto !important;
+}
+</style>

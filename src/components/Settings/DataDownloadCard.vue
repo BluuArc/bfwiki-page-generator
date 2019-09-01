@@ -5,9 +5,9 @@
 			<data-download-selector v-model="dataPairsToDownload"/>
 		</v-card-text>
 		<v-card-actions>
-			<v-btn color="primary">Download</v-btn>
+			<v-btn :disabled="!hasPairs" color="primary">Download</v-btn>
 			<v-spacer/>
-			<v-btn outlined color="error">Delete</v-btn>
+			<v-btn :disabled="!hasPairs" outlined color="error">Delete</v-btn>
 		</v-card-actions>
 	</v-card>
 </template>
@@ -18,6 +18,11 @@ import DataDownloadSelector from './DataDownloadSelector';
 export default {
 	components: {
 		DataDownloadSelector,
+	},
+	computed: {
+		hasPairs () {
+			return this.dataPairsToDownload.length > 0;
+		},
 	},
 	data () {
 		return {

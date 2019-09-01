@@ -1,7 +1,7 @@
 <template>
 	<ul id="data-download-selector-list">
 		<li v-for="pair in dataNameKeyPairs" :key="pair.name">
-			<v-layout row wrap align-baseline>
+			<v-layout row wrap align-baseline class="mb-3">
 				<v-flex xs12 sm3>
 					<v-label>
 						{{ pair.name }}
@@ -12,7 +12,6 @@
 					:key="server"
 					xs4 sm3
 				>
-					<!-- TODO: implement date display -->
 					<scoped-variables :pairKey="createPairKey(pair.key, server)" v-slot="{ pairKey }">
 						<template v-if="!blacklistedPairs.includes(pairKey)">
 							<v-checkbox
@@ -21,7 +20,7 @@
 								:disabled="blacklistedPairs.includes(pairKey)"
 								:label="server"
 								:aria-label="`Select data for ${pair.name} of the ${server} server`"
-								:hint="pairStatusMapping[pairKey] || 'Loading data...'"
+								:hint="getDataStatus(pairKey)"
 								persistent-hint
 							/>
 						</template>
@@ -78,6 +77,7 @@ import { DATA_MAPPING, SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constant
 import { arraysAreIdentical, stringCompare } from '@/utilities/comparisons';
 import ScopedVariables from '@/components/utilities/ScopedVariables';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
+import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('DataDownloadSelector');
@@ -124,20 +124,35 @@ export default {
 		createPairKey (key, server) {
 			return `${key}-${server}`;
 		},
+		getDataStatus (pairKey) {
+			/**
+			 * @type {Date}
+			 */
+			const date = this.pairStatusMapping[pairKey];
+			let result;
+			if (Object.keys(this.pairStatusMapping).length === 0) {
+				result = 'Loading data...';
+			} else if (date > -1) {
+				result = `Updated ${formatDistanceToNow(date)} ago (${date.toLocaleString()})`;
+			} else {
+				result = 'No data cached.';
+			}
+			return result;
+		},
 		async updatePairStatusMapping () {
 			const dateInfo = await bfDatabase.then((worker) => {
 				const tables = Object.keys(DATA_MAPPING).map(key => ({ table: key }));
 				return worker.getDateInformationForTableKeyPairs(tables);
 			});
-			logger.debug({ dateInfo });
-			this.pairStatusMapping = Object.keys(dateInfo).reduce((acc, pairKey) => {
-				/**
-				 * @type {Date}
-				 */
-				const dateForPairKey = dateInfo[pairKey];
-				acc[pairKey] = `Updated ${dateForPairKey.toLocaleString()}`;
+			const { createPairKey } = this;
+			this.pairStatusMapping = this.dataNameKeyPairs.reduce((acc, { key }) => {
+				SERVERS.forEach(server => {
+					const pairKey = createPairKey(key, server);
+					acc[pairKey] = dateInfo[pairKey] || -1;
+				});
 				return acc;
 			}, {});
+			logger.debug({ dateInfo, pairStatusMapping: this.pairStatusMapping });
 		},
 	},
 	props: {
