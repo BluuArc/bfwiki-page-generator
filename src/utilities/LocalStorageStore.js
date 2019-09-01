@@ -1,3 +1,35 @@
+class WorkerStorage {
+	constructor () {
+		this._data = new Map();
+	}
+
+	/**
+	 * @param {string} key
+	 * @param {string} value
+	 */
+	setItem (key, value) {
+		this._data.set(key, value);
+	}
+
+	/**
+	 * @param {string} key
+	 */
+	getItem (key) {
+		return this._data.get(key);
+	}
+
+	/**
+	 * @param {string} key
+	 */
+	removeItem (key) {
+		this._data.delete(key);
+	}
+
+	clear () {
+		this._data.clear();
+	}
+}
+
 export class LocalStorageStore {
 	/**
 	 * @param {string} scope
@@ -9,6 +41,8 @@ export class LocalStorageStore {
 		 * @type {Map<*, Function(key: string, value: any)>}
 		 */
 		this._eventListeners = new Map();
+
+		this._storage = self.localStorage || new WorkerStorage();
 	}
 
 	/**
@@ -24,7 +58,7 @@ export class LocalStorageStore {
 	 * @param {boolean} [useSynchronousEmit=false]
 	 */
 	storeValue (key, value, useSynchronousEmit = false) {
-		localStorage.setItem(this._makeScopedKey(key), value);
+		this._storage.setItem(this._makeScopedKey(key), value);
 		if (useSynchronousEmit) {
 			this.emitValueChange(key, value);
 		} else {
@@ -38,7 +72,7 @@ export class LocalStorageStore {
 	 * @param {boolean} [useSynchronousEmit=false]
 	 */
 	storeObject (key, value, useSynchronousEmit) {
-		localStorage.setItem(this._makeScopedKey(key), JSON.stringify(value));
+		this._storage.setItem(this._makeScopedKey(key), JSON.stringify(value));
 		if (useSynchronousEmit) {
 			this.emitValueChange(key, value);
 		} else {
@@ -87,7 +121,7 @@ export class LocalStorageStore {
 	 * @returns {boolean}
 	 */
 	getBoolean (key) {
-		const value = localStorage.getItem(this._makeScopedKey(key));
+		const value = this._storage.getItem(this._makeScopedKey(key));
 		return value === 'true';
 	}
 
@@ -96,7 +130,7 @@ export class LocalStorageStore {
 	 * @returns {string}
 	 */
 	getString (key) {
-		return localStorage.getItem(this._makeScopedKey(key)) || '';
+		return this._storage.getItem(this._makeScopedKey(key)) || '';
 	}
 }
 

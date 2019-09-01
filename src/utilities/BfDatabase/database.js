@@ -3,8 +3,9 @@ import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('BfDatabase');
 export class BfDatabase {
-	constructor (inputDb = dbInstance) {
+	constructor (inputDb = dbInstance, inputLogger = logger) {
 		this._db = inputDb;
+		this._logger = inputLogger;
 	}
 
 	/**

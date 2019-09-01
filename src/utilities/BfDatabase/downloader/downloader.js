@@ -138,7 +138,9 @@ export default function downloadMultipleDataEntries (entries) {
 		return entries.reduce((acc, { key, server }) => {
 			return acc.then(() => downloadDataForServerAndKey({ key, server, subject }));
 		}, Promise.resolve());
-	}).then(() => {
+	}).catch(e => {
+		subject.error(e);
+	}).finally(() => {
 		bfDatabase.dbInstance.close();
 		subject.complete();
 	});
