@@ -13,26 +13,28 @@
 					xs4 sm3
 				>
 					<!-- TODO: implement date display -->
-					<template v-if="!blacklistedPairs.includes(createPairKey(pair.key, server))">
-						<v-checkbox
-							v-model="pairsToDownload"
-							:value="createPairKey(pair.key, server)"
-							:disabled="blacklistedPairs.includes(createPairKey(pair.key, server))"
-							:label="server"
-							:aria-label="`Select data for ${pair.name} of the ${server} server`"
-							hint="No data found."
-							persistent-hint
-						/>
-					</template>
-					<template v-else>
-						<v-checkbox
-							disabled
-							:label="server"
-							:aria-label="`Data for ${pair.name} of the ${server} server is unavailable`"
-							hint="Data unavailable."
-							persistent-hint
-						/>
-					</template>
+					<scoped-variables :pairKey="createPairKey(pair.key, server)" v-slot="{ pairKey }">
+						<template v-if="!blacklistedPairs.includes(pairKey)">
+							<v-checkbox
+								v-model="pairsToDownload"
+								:value="pairKey"
+								:disabled="blacklistedPairs.includes(pairKey)"
+								:label="server"
+								:aria-label="`Select data for ${pair.name} of the ${server} server`"
+								:hint="pairStatusMapping[pairKey] || 'Loading data...'"
+								persistent-hint
+							/>
+						</template>
+						<template v-else>
+							<v-checkbox
+								disabled
+								:label="server"
+								:aria-label="`Data for ${pair.name} of the ${server} server is unavailable`"
+								hint="Data unavailable."
+								persistent-hint
+							/>
+						</template>
+					</scoped-variables>
 				</v-flex>
 			</v-layout>
 		</li>
@@ -74,8 +76,15 @@
 <script>
 import { DATA_MAPPING, SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
 import { arraysAreIdentical, stringCompare } from '@/utilities/comparisons';
+import ScopedVariables from '@/components/utilities/ScopedVariables';
+import bfDatabase from '@/utilities/BfDatabase/index.client';
+import getLogger from '@/utilities/Logger';
 
+const logger = getLogger('DataDownloadSelector');
 export default {
+	components: {
+		ScopedVariables,
+	},
 	computed: {
 		blacklistedPairs () {
 			// consist of pairs that can't be downloaded
@@ -93,8 +102,12 @@ export default {
 			return SERVERS.slice();
 		},
 	},
+	created () {
+		this.updatePairStatusMapping();
+	},
 	data () {
 		return {
+			pairStatusMapping: {},
 			pairsToDownload: [],
 		};
 	},
@@ -110,6 +123,21 @@ export default {
 		},
 		createPairKey (key, server) {
 			return `${key}-${server}`;
+		},
+		async updatePairStatusMapping () {
+			const dateInfo = await bfDatabase.then((worker) => {
+				const tables = Object.keys(DATA_MAPPING).map(key => ({ table: key }));
+				return worker.getDateInformationForTableKeyPairs(tables);
+			});
+			logger.debug({ dateInfo });
+			this.pairStatusMapping = Object.keys(dateInfo).reduce((acc, pairKey) => {
+				/**
+				 * @type {Date}
+				 */
+				const dateForPairKey = dateInfo[pairKey];
+				acc[pairKey] = `Updated ${dateForPairKey.toLocaleString()}`;
+				return acc;
+			}, {});
 		},
 	},
 	props: {

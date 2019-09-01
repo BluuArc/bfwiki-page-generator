@@ -31,6 +31,7 @@ export default {
 		if (isDebugMode()) {
 			logger.debug('Debug Mode enabled. Adding debug object to window._bfDebug');
 			window._bfDebug = {
+				context: this,
 				downloader: await downloader,
 				localStorageStore,
 				logger: getLogger('DevTools'),

@@ -1,6 +1,9 @@
 <template>
   <v-app-bar app>
-    <v-app-bar-nav-icon @click.stop="$emit('toggleDrawer')"/>
+    <v-app-bar-nav-icon
+      aria-label="Display Navigation Drawer"
+      @click.stop="$emit('toggleDrawer')"
+    />
     <v-toolbar-title class="headline text-uppercase">
       <span>BFWiki</span>
       <span class="font-weight-light">Page Generator</span>
