@@ -1,5 +1,3 @@
-export const SERVERS = Object.freeze(['GL', 'EU', 'JP']);
-
 export const SERVER_NAME_MAPPING = Object.freeze({
 	EU: 'Europe',
 	Europe: 'EU',
@@ -9,41 +7,56 @@ export const SERVER_NAME_MAPPING = Object.freeze({
 	Japan: 'JP',
 });
 
+export const SERVERS = Object.freeze([
+	SERVER_NAME_MAPPING.Global,
+	SERVER_NAME_MAPPING.Europe,
+	SERVER_NAME_MAPPING.Japan,
+]);
+
 export const DATA_MAPPING = Object.freeze({
 	bursts: {
 		files: new Array(10).fill(0).map((_, i) => `bbs_${i}.json`),
+		key: 'bursts',
 		name: 'Brave Bursts',
 	},
 	dictionary: {
 		files: ['dictionary.json'],
+		key: 'dictionary',
 		name: 'Dictionary',
 	},
 	evolutionMaterials: {
 		files: ['evo_list.json'],
+		key: 'evolutionMaterials',
 		name: 'Evolution Materials',
 	},
 	extraSkills: {
 		files: ['es.json'],
+		key: 'extraSkills',
 		name: 'Extra Skills',
 	},
 	items: {
 		files: ['items.json'],
+		key: 'items',
 		name: 'Items',
 	},
 	leaderSkills: {
 		files: ['ls.json'],
+		key: 'leaderSkills',
 		name: 'Leader Skills',
 	},
 	missions: {
 		files: ['missions.json'],
+		key: 'missions',
 		name: 'Missions',
 	},
 	spEnhancements: {
 		files: ['feskills.json'],
+		key: 'spEnhancements',
 		name: 'SP Enhancements',
 	},
 	units: {
 		files: ['info.json'],
+		key: 'units',
 		name: 'Units',
 	},
 });

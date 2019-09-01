@@ -13,14 +13,26 @@
 					xs4 sm3
 				>
 					<!-- TODO: implement date display -->
-					<v-checkbox
-						v-model="pairsToDownload"
-						:value="createPairKey(pair.key, server)"
-						:label="server"
-						:aria-label="`Select data for ${pair.name} from ${server} server`"
-						hint="No data found."
-						persistent-hint
-					/>
+					<template v-if="!blacklistedPairs.includes(createPairKey(pair.key, server))">
+						<v-checkbox
+							v-model="pairsToDownload"
+							:value="createPairKey(pair.key, server)"
+							:disabled="blacklistedPairs.includes(createPairKey(pair.key, server))"
+							:label="server"
+							:aria-label="`Select data for ${pair.name} of the ${server} server`"
+							hint="No data found."
+							persistent-hint
+						/>
+					</template>
+					<template v-else>
+						<v-checkbox
+							disabled
+							:label="server"
+							:aria-label="`Data for ${pair.name} of the ${server} server is unavailable`"
+							hint="Data unavailable."
+							persistent-hint
+						/>
+					</template>
 				</v-flex>
 			</v-layout>
 		</li>
@@ -60,11 +72,18 @@
 </template>
 
 <script>
-import { DATA_MAPPING, SERVERS } from '@/utilities/constants';
+import { DATA_MAPPING, SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
 import { arraysAreIdentical, stringCompare } from '@/utilities/comparisons';
 
 export default {
 	computed: {
+		blacklistedPairs () {
+			// consist of pairs that can't be downloaded
+			return [
+				this.createPairKey(DATA_MAPPING.dictionary.key, SERVER_NAME_MAPPING.Europe),
+				this.createPairKey(DATA_MAPPING.dictionary.key, SERVER_NAME_MAPPING.Japan),
+			];
+		},
 		dataNameKeyPairs () {
 			return Object.keys(DATA_MAPPING)
 				.map(key => ({ key, name: DATA_MAPPING[key].name }))
@@ -101,7 +120,10 @@ export default {
 	},
 	watch: {
 		pairsToDownload (newValue) {
-			if (!arraysAreIdentical(newValue, this.value)) {
+			const { blacklistedPairs } = this;
+			if (newValue.some(v => blacklistedPairs.includes(v))) {
+				this.pairsToDownload = newValue.filter(v => !blacklistedPairs.includes(v));
+			} else if (!arraysAreIdentical(newValue, this.value)) {
 				this.$emit('input', newValue);
 			}
 		},
