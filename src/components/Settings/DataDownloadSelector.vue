@@ -156,6 +156,10 @@ export default {
 		},
 	},
 	props: {
+		statisticsToken: {
+			default: 0,
+			type: Number,
+		},
 		value: {
 			default: () => [],
 			type: Array,
@@ -169,6 +173,9 @@ export default {
 			} else if (!arraysAreIdentical(newValue, this.value)) {
 				this.$emit('input', newValue);
 			}
+		},
+		statisticsToken () {
+			this.updatePairStatusMapping();
 		},
 		value: {
 			handler (newValue) {

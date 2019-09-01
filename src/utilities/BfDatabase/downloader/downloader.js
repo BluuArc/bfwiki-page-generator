@@ -86,9 +86,12 @@ function storeDataIntoTable ({ cacheTime = new Date(), data, server, table }) {
  * @param {object} arg0
  * @param {string} arg0.key the key of the entry inside the DATA_MAPPING constant
  * @param {string} arg0.server
+ * @param {number?} [arg0.stepsSoFar=0]
+ * @param {number?} [arg0.totalSteps=3]
+ * @param {boolean?} [arg0.returnSteps=false]
  * @param {Promise<string>}
  */
-function downloadDataForServerAndKey ({ key, server, subject }) {
+function downloadDataForServerAndKey ({ key, server, subject, stepsSoFar = 0, returnSteps = false, totalSteps = 3 }) {
 	if (!SERVERS.includes(server)) {
 		throw new Error(`Server [${server}] is not a valid server.`);
 	} else if (!DATA_MAPPING.hasOwnProperty(key)) {
@@ -103,7 +106,7 @@ function downloadDataForServerAndKey ({ key, server, subject }) {
 	 * @type {Array<string>}
 	 */
 	const mappedUrls = dataConfig.files.map(url => generateDownloadUrl(server, url));
-	const totalSteps = mappedUrls.length + 2; // download + combine + store
+	const stepsForCurrentEntry = mappedUrls.length + 2;
 	const baseProgressConfig = {
 		message: `Downloading data for ${dataConfig.name}`,
 		name: dataConfig.name,
@@ -111,22 +114,36 @@ function downloadDataForServerAndKey ({ key, server, subject }) {
 	logger.debug('Starting download for input', { key, mappedUrls, server });
 	subject.next({
 		...baseProgressConfig,
-		...makeProgressEvent(1, totalSteps),
+		...makeProgressEvent(1 + stepsSoFar, totalSteps),
 	});
 
 	return downloadToSingleObject(mappedUrls, (step) => {
 		subject.next({
 			...baseProgressConfig,
-			...makeProgressEvent(step, totalSteps),
+			...makeProgressEvent(step + stepsSoFar, totalSteps),
 		});
 	}).then((data) => {
+		logger.debug('Storing download for input', { key, mappedUrls, server });
 		subject.next({
 			...baseProgressConfig,
-			...makeProgressEvent(totalSteps, totalSteps),
+			...makeProgressEvent(stepsForCurrentEntry + stepsSoFar, totalSteps),
 			message: `Storing data for ${dataConfig.name}`,
 		});
 		return storeDataIntoTable({ data, server, table: key });
-	});
+	}).then((key) => returnSteps ? (stepsForCurrentEntry + stepsSoFar) : key);
+}
+
+/**
+ * @param {Array<{ server: string, key: string }>} entries
+ */
+function getTotalStepsForEntries (entries) {
+	return entries.map(({ key }) => {
+		/**
+		 * @type {{files: Array<string>, name: string}}
+		 */
+		const dataConfig = DATA_MAPPING[key];
+		return dataConfig.files.length + 2; // download + combine + store
+	}).reduce((acc, count) => acc + count, 0);
 }
 
 /**
@@ -134,13 +151,23 @@ function downloadDataForServerAndKey ({ key, server, subject }) {
  */
 export default function downloadMultipleDataEntries (entries) {
 	const subject = new Subject();
+	const totalSteps = getTotalStepsForEntries(entries);
 	bfDatabase.dbInstance.open().then(() => {
-		return entries.reduce((acc, { key, server }) => {
-			return acc.then(() => downloadDataForServerAndKey({ key, server, subject }));
+		return entries.reduce((acc, { key, server }, index) => {
+			return acc.then((stepsSoFar = 0) => downloadDataForServerAndKey({
+				entryIndex: index,
+				key,
+				returnSteps: true,
+				server,
+				stepsSoFar,
+				subject,
+				totalSteps,
+			}));
 		}, Promise.resolve());
 	}).catch(e => {
 		subject.error(e);
 	}).finally(() => {
+		logger.debug('complete downloading data for', entries);
 		bfDatabase.dbInstance.close();
 		subject.complete();
 	});
