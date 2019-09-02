@@ -3,7 +3,7 @@
 		<v-card-title>Download Data</v-card-title>
 		<v-card-text>
 			<data-download-selector
-				v-model="dataPairsToDownload"
+				v-model="dataPairsToConsider"
 				:statisticsToken="statisticsToken"
 			/>
 		</v-card-text>
@@ -23,49 +23,69 @@
 				Delete
 			</v-btn>
 		</v-card-actions>
-		<download-dialog
-			v-model="showDownloadDialog"
-			:pairsToDownload="pairsForDownloadDialog"
-		/>
+		<multi-dialog
+			v-model="activeDialog"
+			persistent
+			width="500"
+			:slotsToExpose="dialogNamesArray"
+		>
+			<v-card :slot="DIALOG_NAMES.DOWNLOAD">
+				<v-card-text>
+					<database-download-progress
+						@finish="() => activeDialog = ''"
+						:pairsToDownload="pairsForDownloadDialog"
+					/>
+				</v-card-text>
+			</v-card>
+		</multi-dialog>
 	</v-card>
 </template>
 
 <script>
 import DataDownloadSelector from './DataDownloadSelector';
-import DownloadDialog from './DownloadDialog';
+import DatabaseDownloadProgress from './DatabaseDownloadProgress';
+import MultiDialog from '@/components/utilities/MultiDialog';
 
 export default {
 	components: {
 		DataDownloadSelector,
-		DownloadDialog,
+		DatabaseDownloadProgress,
+		MultiDialog,
 	},
 	computed: {
+		DIALOG_NAMES: () => Object.freeze({
+			DELETE: 'delete',
+			DOWNLOAD: 'download',
+		}),
+		dialogNamesArray () {
+			return Object.values(this.DIALOG_NAMES);
+		},
 		hasPairs () {
-			return this.dataPairsToDownload.length > 0;
+			return this.dataPairsToConsider.length > 0;
 		},
 	},
 	data () {
 		return {
-			dataPairsToDownload: [],
+			activeDialog: '',
+			dataPairsToConsider: [],
 			pairsForDownloadDialog: [],
-			showDownloadDialog: false,
 			statisticsToken: 0,
 		};
 	},
 	methods: {
 		startDownload () {
-			this.showDownloadDialog = true;
-			this.pairsForDownloadDialog = this.dataPairsToDownload.map(pairKey => {
+			this.activeDialog = this.DIALOG_NAMES.DOWNLOAD;
+			this.pairsForDownloadDialog = this.dataPairsToConsider.map(pairKey => {
 				const [table, server] = pairKey.split('-');
 				return { key: table, server };
 			});
 		},
 	},
 	watch: {
-		showDownloadDialog (isShowing) {
-			if (!isShowing) { // finished download, so refresh statistics
+		activeDialog (newValue, oldValue) {
+			if (oldValue === this.DIALOG_NAMES.DOWNLOAD) { // finished download, so refresh statistics
 				this.statisticsToken = Date.now();
-				this.dataPairsToDownload = [];
+				this.dataPairsToConsider = [];
 			}
 		},
 	},

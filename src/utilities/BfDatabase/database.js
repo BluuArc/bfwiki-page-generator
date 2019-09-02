@@ -84,6 +84,16 @@ export class BfDatabase {
 	}
 
 	/**
+	 * @param {Array<{table: string, key: object|string}>} entries
+	 * @returns {Promise<void>}
+	 */
+	deleteMultiple (entries) {
+		return entries.reduce((acc, val) => {
+			return acc.then(() => this.delete(val));
+		}, Promise.resolve());
+	}
+
+	/**
 	 * @param {Object} arg0
 	 * @param {string} arg0.table
 	 * @param {object|string} arg0.key key can be either the primary key or an object

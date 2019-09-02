@@ -16,6 +16,10 @@ import downloader from '@/utilities/BfDatabase/downloader/index.client';
 import localStorageStore from '@/utilities/LocalStorageStore';
 
 export default {
+	beforeMount () {
+		const htmlElement = document.querySelector('html');
+		htmlElement.classList.add('page-html');
+	},
 	components: {
 		TopAppBar,
 	},
@@ -47,7 +51,11 @@ export default {
 </script>
 
 <style lang="scss">
-html {
-	overflow: auto !important;
+html.page-html {
+	overflow-y: auto;
+
+	&.overflow-y-hidden {
+		overflow-y: hidden;
+	}
 }
 </style>
