@@ -1,6 +1,7 @@
 <template>
 	<v-app>
-		<top-app-bar/>
+		<top-app-bar @toggledrawer="showDrawer = !showDrawer"/>
+		<left-nav-drawer v-model="showDrawer"/>
 		<v-content>
 			<router-view/>
 		</v-content>
@@ -8,11 +9,11 @@
 </template>
 
 <script>
+import LeftNavDrawer from '@/components/MainShell/LeftNavDrawer';
 import { SETTING_KEYS } from '@/utilities/constants';
 import TopAppBar from '@/components/MainShell/TopAppBar';
 import getLogger, { isDebugMode } from '@/utilities/Logger'; // eslint-disable-line sort-imports
 import bfDatabase from '@/utilities/BfDatabase/index.client';
-import downloader from '@/utilities/BfDatabase/downloader/index.client';
 import localStorageStore from '@/utilities/LocalStorageStore';
 
 export default {
@@ -21,6 +22,7 @@ export default {
 		htmlElement.classList.add('page-html');
 	},
 	components: {
+		LeftNavDrawer,
 		TopAppBar,
 	},
 	async created () {
@@ -36,15 +38,14 @@ export default {
 			logger.debug('Debug Mode enabled. Adding debug object to window._bfDebug');
 			window._bfDebug = {
 				context: this,
-				downloader: await downloader,
+				dbWorker: await bfDatabase,
 				localStorageStore,
 				logger: getLogger('DevTools'),
-				worker: await bfDatabase,
 			};
 		}
 	},
 	data: () => ({
-		//
+		showDrawer: false,
 	}),
 	name: 'App',
 };

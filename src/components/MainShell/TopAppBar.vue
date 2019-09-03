@@ -2,19 +2,12 @@
   <v-app-bar app>
     <v-app-bar-nav-icon
       aria-label="Display Navigation Drawer"
-      @click.stop="$emit('toggleDrawer')"
+      @click.stop="$emit('toggledrawer')"
     />
-    <v-toolbar-title class="headline text-uppercase">
-      <span>BFWiki</span>
-      <span class="font-weight-light">Page Generator</span>
+    <v-toolbar-title class="headline">
+      {{ $route.name }}
     </v-toolbar-title>
     <v-spacer/>
-    <v-btn
-      aria-label="Change Theme"
-      icon
-      @click="$vuetify.theme.dark = !$vuetify.theme.dark">
-      <v-icon>fa-adjust</v-icon>
-    </v-btn>
     <v-divider vertical/>
     <v-btn
       aria-label="Go to the GitHub Repository"
