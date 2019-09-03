@@ -167,7 +167,7 @@ export default function downloadMultipleDataEntries (entries) {
 	}).catch(e => {
 		subject.error(e);
 	}).finally(() => {
-		logger.debug('complete downloading data for', entries);
+		logger.debug('completed downloading data for', entries);
 		bfDatabase.dbInstance.close();
 		subject.complete();
 	});

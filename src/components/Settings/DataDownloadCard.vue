@@ -19,6 +19,7 @@
 			<v-btn
 				:disabled="!hasPairs"
 				outlined color="error"
+				@click="startDelete"
 			>
 				Delete
 			</v-btn>
@@ -33,7 +34,15 @@
 				<v-card-text>
 					<database-download-progress
 						@finish="() => activeDialog = ''"
-						:pairsToDownload="pairsForDownloadDialog"
+						:pairsToDownload="pairsToDownload"
+					/>
+				</v-card-text>
+			</v-card>
+			<v-card :slot="DIALOG_NAMES.DELETE">
+				<v-card-text>
+					<database-delete-progress
+						@finish="() => activeDialog = ''"
+						:pairsToDelete="pairsToDelete"
 					/>
 				</v-card-text>
 			</v-card>
@@ -43,12 +52,14 @@
 
 <script>
 import DataDownloadSelector from './DataDownloadSelector';
+import DatabaseDeleteProgress from './DatabaseDeleteProgress';
 import DatabaseDownloadProgress from './DatabaseDownloadProgress';
 import MultiDialog from '@/components/utilities/MultiDialog';
 
 export default {
 	components: {
 		DataDownloadSelector,
+		DatabaseDeleteProgress,
 		DatabaseDownloadProgress,
 		MultiDialog,
 	},
@@ -68,14 +79,22 @@ export default {
 		return {
 			activeDialog: '',
 			dataPairsToConsider: [],
-			pairsForDownloadDialog: [],
+			pairsToDelete: [],
+			pairsToDownload: [],
 			statisticsToken: 0,
 		};
 	},
 	methods: {
+		startDelete () {
+			this.activeDialog = this.DIALOG_NAMES.DELETE;
+			this.pairsToDelete = this.dataPairsToConsider.map(pairKey => {
+				const [table, server] = pairKey.split('-');
+				return { key: server, table };
+			});
+		},
 		startDownload () {
 			this.activeDialog = this.DIALOG_NAMES.DOWNLOAD;
-			this.pairsForDownloadDialog = this.dataPairsToConsider.map(pairKey => {
+			this.pairsToDownload = this.dataPairsToConsider.map(pairKey => {
 				const [table, server] = pairKey.split('-');
 				return { key: table, server };
 			});
@@ -83,7 +102,7 @@ export default {
 	},
 	watch: {
 		activeDialog (newValue, oldValue) {
-			if (oldValue === this.DIALOG_NAMES.DOWNLOAD) { // finished download, so refresh statistics
+			if (oldValue === this.DIALOG_NAMES.DOWNLOAD || oldValue === this.DIALOG_NAMES.DELETE) { // finished operation, so refresh statistics
 				this.statisticsToken = Date.now();
 				this.dataPairsToConsider = [];
 			}

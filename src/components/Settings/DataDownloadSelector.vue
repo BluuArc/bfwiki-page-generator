@@ -140,6 +140,7 @@ export default {
 			return result;
 		},
 		async updatePairStatusMapping () {
+			this.pairStatusMapping = {};
 			const dateInfo = await bfDatabase.then((worker) => {
 				const tables = Object.keys(DATA_MAPPING).map(key => ({ table: key }));
 				return worker.getDateInformationForTableKeyPairs(tables);

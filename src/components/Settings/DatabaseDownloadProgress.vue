@@ -1,21 +1,26 @@
 <template>
-	<section>
-		<p v-text="progressMessage"></p>
-			<v-progress-linear
-				:buffer-value="currentProgress"
-				:value="currentProgress"
-				stream
-			/>
-	</section>
+	<progress-viewer
+		:message="progressMessage"
+		:bufferProgress="currentProgress"
+		:progress="currentProgress"
+	/>
 </template>
 
 <script>
+import ProgressViewer from '@/components/utilities/ProgressViewer';
 import { Thread } from 'threads';
+import { VProgressLinear } from 'vuetify/lib';
 import downloaderFactory from '@/utilities/BfDatabase/downloader/index.client';
 import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('DownloadProgress');
 export default {
+	components: {
+		ProgressViewer,
+
+		// needed to use ProgressViewer
+		VProgressLinear, // eslint-disable-line vue/no-unused-components
+	},
 	data () {
 		return {
 			currentProgress: 0,

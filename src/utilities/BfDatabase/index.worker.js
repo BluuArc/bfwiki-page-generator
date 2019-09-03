@@ -34,4 +34,7 @@ class ThreadsBfDatabase extends BfDatabase {
 	}
 }
 
-expose(convertClassInstanceToObject(new ThreadsBfDatabase(bfDatabase.dbInstance)));
+const db = new ThreadsBfDatabase(bfDatabase.dbInstance);
+const exposedObject = convertClassInstanceToObject(db);
+db._logger.debug({ exposedObject });
+expose(exposedObject);
