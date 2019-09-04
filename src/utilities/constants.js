@@ -67,3 +67,5 @@ export const SETTING_KEYS = Object.freeze({
 });
 
 export const BASE_DATAMINE_URL = 'https://raw.githubusercontent.com/cheahjs/bravefrontier_data/master';
+
+export const ELEMENTS = Object.freeze(['fire', 'water', 'earth', 'thunder', 'light', 'dark']);

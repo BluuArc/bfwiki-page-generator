@@ -54,7 +54,7 @@ function downloadToSingleObject (urls = [], onProgress) {
 			incrementStep();
 			const data = results.reduce((acc, val) => {
 				Object.keys(val).forEach(key => {
-					acc[key] = val;
+					acc[key] = val[key];
 				});
 				return acc;
 			}, {});

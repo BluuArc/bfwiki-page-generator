@@ -1,5 +1,7 @@
-import { SERVERS } from '@/utilities/constants';
+import { SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
+import dbFilters from './multidex/filters';
 import dbInstance from './dexie-instance';
+import dbSorts from './multidex/sorts';
 import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('BfDatabase');
@@ -151,6 +153,47 @@ export class BfDatabase {
 			});
 			return result;
 		});
+	}
+
+	/**
+	 * @param {object} arg0
+	 * @param {Array<string>} arg0.extractedFields
+	 * @param {object} arg0.filters
+	 * @param {string?} arg0.server
+	 * @param {object?} arg0.sortOptions
+	 * @param {string} table
+	 */
+	async getFilteredDb ({
+		extractedFields,
+		filters,
+		server = SERVER_NAME_MAPPING.Global,
+		sortOptions,
+		table,
+	}) {
+		const keysOnly = !Array.isArray(extractedFields);
+		const { data: db } = await this.get({ key: server, props: ['data'], table });
+		const filteredKeys = dbFilters.get(table)({ db, filters });
+		logger.debug({ allKeys: Object.keys(db), filteredKeys, filters, server, table });
+		if (keysOnly) {
+			return typeof sortOptions === 'object'
+				? dbSorts.get(table)({ db, keys: filteredKeys, sortOptions })
+				: filteredKeys;
+		} else {
+			return filteredKeys.reduce((acc, key) => {
+				const initialEntry = db[key];
+				const filteredEntry = extractedFields.length === 0
+					? initialEntry // get everything
+					: extractedFields.reduce((entryAcc, fieldName) => {
+						if (initialEntry && initialEntry[fieldName] !== undefined) {
+							entryAcc[fieldName] = initialEntry[fieldName];
+						}
+						return entryAcc;
+					}, {});
+
+				acc[key] = filteredEntry;
+				return acc;
+			}, {});
+		}
 	}
 
 	// TODO: getById and getByIds
