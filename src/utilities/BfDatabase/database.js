@@ -20,6 +20,18 @@ export class BfDatabase {
 	}
 
 	/**
+	 * @param {object} arg0
+	 * @param {string?} arg0.server
+	 * @param {string} arg0.table
+	 * @returns {{ [key: string]: object }}
+	 * @private
+	 */
+	async _getDatamineDb ({ server, table }) {
+		const { data: db } = await this.get({ key: server, props: ['data'], table });
+		return db;
+	}
+
+	/**
 	 * @param {{table: string, data: any}}
 	 * @returns {Promise<any>} Promise that resolves to key of input data entry
 	 */
@@ -159,19 +171,21 @@ export class BfDatabase {
 	 * @param {object} arg0
 	 * @param {Array<string>} arg0.extractedFields
 	 * @param {object} arg0.filters
+	 * @param {object?} arg0.inputDb
 	 * @param {string?} arg0.server
 	 * @param {object?} arg0.sortOptions
-	 * @param {string} table
+	 * @param {string} arg0.table
 	 */
 	async getFilteredDb ({
 		extractedFields,
 		filters,
+		inputDb,
 		server = SERVER_NAME_MAPPING.Global,
 		sortOptions,
 		table,
 	}) {
 		const keysOnly = !Array.isArray(extractedFields);
-		const { data: db } = await this.get({ key: server, props: ['data'], table });
+		const db = inputDb || await this._getDatamineDb({ server, table });
 		const filteredKeys = dbFilters.get(table)({ db, filters });
 		logger.debug({ allKeys: Object.keys(db), filteredKeys, filters, server, table });
 		if (keysOnly) {
@@ -196,7 +210,84 @@ export class BfDatabase {
 		}
 	}
 
-	// TODO: getById and getByIds
+	/**
+	 * @param {object} arg0
+	 * @param {object?} arg0.inputDb
+	 * @param {Array<string>} arg0.keys
+	 * @param {string?} arg0.server
+	 * @param {object?} arg0.sortOptions
+	 * @param {string} arg0.table
+	 */
+	async getSortedKeys ({
+		inputDb,
+		keys,
+		server = SERVER_NAME_MAPPING.Global,
+		sortOptions,
+		table,
+	}) {
+		const db = inputDb || await this._getDatamineDb({ server, table });
+		return dbSorts.get(table)({ db, keys, sortOptions });
+	}
+
+	/**
+	 * @param {object} arg0
+	 * @param {Array<string>?} arg0.extractedFields
+	 * @param {Array<string>} arg0.ids
+	 * @param {object?} arg0.inputDb
+	 * @param {string?} arg0.server
+	 * @param {string} arg0.table
+	 * @returns {{ [key: string]: object }}
+	 */
+	async getByIds ({
+		extractedFields = [],
+		ids,
+		inputDb,
+		server,
+		table,
+	}) {
+		const db = inputDb || await this._getDatamineDb({ server, table });
+		const getEverything = extractedFields.length === 0;
+		return ids.reduce((acc, id) => {
+			const baseEntry = db[id];
+			if (getEverything) {
+				acc[id] = baseEntry;
+			} else {
+				const filteredEntry = extractedFields.reduce((entryAcc, field) => {
+					if (baseEntry && baseEntry[field] !== undefined) {
+						entryAcc[field] = baseEntry[field];
+					}
+					return entryAcc;
+				}, {});
+				acc[id] = filteredEntry;
+			}
+			return acc;
+		}, {});
+	}
+
+	/**
+	 * @param {object} arg0
+	 * @param {Array<string>?} arg0.extractedFields
+	 * @param {object?} arg0.inputDb
+	 * @param {string} arg0.id
+	 * @param {string?} arg0.server
+	 * @param {string} arg0.table
+	 */
+	async getById ({
+		extractedFields = [],
+		id,
+		inputDb,
+		server,
+		table,
+	}) {
+		const result = await this.getByIds({
+			extractedFields,
+			ids: [id],
+			inputDb,
+			server,
+			table,
+		});
+		return result[id];
+	}
 }
 
 export default new BfDatabase(dbInstance);
