@@ -2,6 +2,7 @@
 	<v-navigation-drawer
 		v-model="showDrawer"
 		app temporary
+		:aria-hidden="(!showDrawer).toString()"
 	>
 		<v-list-item>
 			<v-list-item-content>
@@ -21,12 +22,12 @@
 				</v-subheader>
 				<v-list-item-group
 					:key="`${parentCategory.name}-pages`"
-					color="primary"
 				>
 					<v-list-item
 						v-for="page in parentCategory.pages"
 						:key="page.path"
 						:to="page.path"
+						:tabindex="showDrawer ? 0 : -1"
 					>
 						<v-list-item-icon>
 							<v-icon v-text="page.listConfig.icon"/>
