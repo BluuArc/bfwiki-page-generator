@@ -168,6 +168,37 @@ export class BfDatabase {
 	}
 
 	/**
+	 * @param {Object} arg0
+	 * @param {string} arg0.table
+	 * @param {Array<string>?} [arg0.keys=SERVERS] array of primary keys
+	 * @returns {Promise<Array<string>}
+	 */
+	async getCachedServersInTable ({ keys = SERVERS, table }) {
+		const dbTable = this._getTable(table);
+		const availableKeys = [];
+		await dbTable.each(entry => {
+			if (keys.includes(entry.server)) {
+				availableKeys.push(entry.server);
+			}
+		});
+		return availableKeys;
+	}
+
+	/**
+	 * @param {Array<{ table: string, keys: Array<string> }>} pairs
+	 * @returns {Promise<Array<string>>}
+	 */
+	getCachedServersInTables (pairs = []) {
+		const getEntriesPromise = Promise.all(pairs.map(({ keys = SERVERS, table }) => {
+			return this.getCachedServersInTable({ keys, table })
+				.then(availableKeys => availableKeys.map(key => `${table}-${key}`));
+		}));
+		return getEntriesPromise.then(arraysOfEntries => {
+			return arraysOfEntries.reduce((acc, entriesArray) => acc.concat(entriesArray), []);
+		});
+	}
+
+	/**
 	 * @param {object} arg0
 	 * @param {Array<string>} arg0.extractedFields
 	 * @param {object} arg0.filters

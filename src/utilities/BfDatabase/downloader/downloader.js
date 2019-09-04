@@ -108,7 +108,7 @@ function downloadDataForServerAndKey ({ key, server, subject, stepsSoFar = 0, re
 	const mappedUrls = dataConfig.files.map(url => generateDownloadUrl(server, url));
 	const stepsForCurrentEntry = mappedUrls.length + 2;
 	const baseProgressConfig = {
-		message: `Downloading data for ${dataConfig.name}`,
+		message: `Downloading data for ${dataConfig.name} (${server})`,
 		name: dataConfig.name,
 	};
 	logger.debug('Starting download for input', { key, mappedUrls, server });
@@ -127,7 +127,7 @@ function downloadDataForServerAndKey ({ key, server, subject, stepsSoFar = 0, re
 		subject.next({
 			...baseProgressConfig,
 			...makeProgressEvent(stepsForCurrentEntry + stepsSoFar, totalSteps),
-			message: `Storing data for ${dataConfig.name}`,
+			message: `Storing data for ${dataConfig.name} (${server})`,
 		});
 		return storeDataIntoTable({ data, server, table: key });
 	}).then((key) => returnSteps ? (stepsForCurrentEntry + stepsSoFar) : key);
