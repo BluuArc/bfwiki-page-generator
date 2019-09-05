@@ -4,6 +4,7 @@
 		<v-card-text>
 			<data-download-selector
 				v-model="dataPairsToConsider"
+				@updatestatistics="updateStatisticsToken"
 				:statisticsToken="statisticsToken"
 			/>
 		</v-card-text>
@@ -99,11 +100,14 @@ export default {
 				return { key: table, server };
 			});
 		},
+		updateStatisticsToken () {
+			this.statisticsToken = Date.now();
+		},
 	},
 	watch: {
 		activeDialog (newValue, oldValue) {
 			if (oldValue === this.DIALOG_NAMES.DOWNLOAD || oldValue === this.DIALOG_NAMES.DELETE) { // finished operation, so refresh statistics
-				this.statisticsToken = Date.now();
+				this.updateStatisticsToken();
 				this.dataPairsToConsider = [];
 			}
 		},

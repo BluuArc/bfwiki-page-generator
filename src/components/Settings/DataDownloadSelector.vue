@@ -75,6 +75,7 @@
 <script>
 import { DATA_MAPPING, SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
 import { arraysAreIdentical, stringCompare } from '@/utilities/comparisons';
+import { createPairKey, parsePairKey } from '@/utilities/BfDatabase/utils';
 import ScopedVariables from '@/components/utilities/ScopedVariables';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import formatDistanceToNow from 'date-fns/formatDistanceToNow';
@@ -86,6 +87,9 @@ export default {
 		ScopedVariables,
 	},
 	computed: {
+		availableTablesPromise () {
+			return this.$store.state.availableTablesPromise;
+		},
 		blacklistedPairs () {
 			// consist of pairs that can't be downloaded
 			return [
@@ -122,7 +126,7 @@ export default {
 			});
 		},
 		createPairKey (key, server) {
-			return `${key}-${server}`;
+			return createPairKey(key, server);
 		},
 		getDataStatus (pairKey) {
 			/**
@@ -141,19 +145,24 @@ export default {
 		},
 		async updatePairStatusMapping () {
 			this.pairStatusMapping = {};
-			const dateInfo = await bfDatabase.then((worker) => {
-				const tables = Object.keys(DATA_MAPPING).map(key => ({ table: key }));
+			const { statisticsToken } = this;
+			const worker = await bfDatabase;
+			const dateInfo = await this.availableTablesPromise.then((pairKeys) => {
+				logger.debug('getting date info for following pairKeys', pairKeys);
+				const tablesSet = new Set(pairKeys.map(key => parsePairKey(key).table));
+				const tables = Array.from(tablesSet).map(table => ({ table }));
 				return worker.getDateInformationForTableKeyPairs(tables);
 			});
-			const { createPairKey } = this;
-			this.pairStatusMapping = this.dataNameKeyPairs.reduce((acc, { key }) => {
-				SERVERS.forEach(server => {
-					const pairKey = createPairKey(key, server);
-					acc[pairKey] = dateInfo[pairKey] || -1;
-				});
-				return acc;
-			}, {});
-			logger.debug({ dateInfo, pairStatusMapping: this.pairStatusMapping });
+			if (statisticsToken === this.statisticsToken) {
+				this.pairStatusMapping = this.dataNameKeyPairs.reduce((acc, { key }) => {
+					SERVERS.forEach(server => {
+						const pairKey = createPairKey(key, server);
+						acc[pairKey] = dateInfo[pairKey] || -1;
+					});
+					return acc;
+				}, {});
+				logger.debug({ dateInfo, pairStatusMapping: this.pairStatusMapping });
+			}
 		},
 	},
 	props: {
@@ -167,6 +176,9 @@ export default {
 		},
 	},
 	watch: {
+		availableTablesPromise () {
+			this.$emit('updatestatistics');
+		},
 		pairsToDownload (newValue) {
 			const { blacklistedPairs } = this;
 			if (newValue.some(v => blacklistedPairs.includes(v))) {

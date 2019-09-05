@@ -5,7 +5,7 @@ import bfDatabase from '@/utilities/BfDatabase/index.client';
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
 	actions: {
 		async updateAvailableTables (context) {
 			const allEntries = Object.values(DATA_MAPPING).reduce((acc, val) => {
@@ -31,3 +31,7 @@ export default new Vuex.Store({
 		availableTablesPromise: Promise.resolve([]),
 	},
 });
+
+store.dispatch('updateAvailableTables');
+
+export default store;
