@@ -1,4 +1,5 @@
 import { SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
+import { createPairKey } from './utils';
 import dbFilters from './multidex/filters';
 import dbInstance from './dexie-instance';
 import dbSorts from './multidex/sorts';
@@ -152,7 +153,7 @@ export class BfDatabase {
 		const getDateInfoPromise = Promise.all(pairs.map(({ keys = SERVERS, table }) => {
 			return this.getDateInformationForEntriesInTable({ keys, table })
 				.then(entries => {
-					return keys.map(key => ({ pairKey: `${table}-${key}`, value: entries[key] }))
+					return keys.map(server => ({ pairKey: createPairKey(table, server), value: entries[server] }))
 						.filter(entry => !!entry.value);
 				});
 		}));
@@ -191,7 +192,7 @@ export class BfDatabase {
 	getCachedServersInTables (pairs = []) {
 		const getEntriesPromise = Promise.all(pairs.map(({ keys = SERVERS, table }) => {
 			return this.getCachedServersInTable({ keys, table })
-				.then(availableKeys => availableKeys.map(key => `${table}-${key}`));
+				.then(availableKeys => availableKeys.map(server => createPairKey(table, server)));
 		}));
 		return getEntriesPromise.then(arraysOfEntries => {
 			return arraysOfEntries.reduce((acc, entriesArray) => acc.concat(entriesArray), []);
