@@ -15,6 +15,14 @@ const pageGeneratorRoutes = [
 		name: 'Unit Generator',
 		path: '/generators/units',
 	},
+	{
+		component: () => import(/* webpackChunkName: "generators" */ '@/views/Generators/UnitsView.vue'),
+		listConfig: {
+			hidden: true,
+		},
+		name: 'Unit Generator',
+		path: '/generators/units/:id',
+	},
 ];
 
 export default pageGeneratorRoutes.map(r => { r.listConfig.parent = 'Page Generators'; return r; });
