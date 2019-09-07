@@ -14,7 +14,14 @@
 						/>
 					</v-flex>
 					<v-flex style="flex: none">
-						<v-btn icon class="mx-2" @click="emitSearchChange">
+						<v-btn
+							class="mx-2"
+							style="transition: 0.25s ease background-color"
+							small
+							fab
+							:color="hasDirtyInput ? 'primary' : undefined"
+							:text="!hasDirtyInput"
+							@click="emitSearchChange">
 							<v-icon>fa-search</v-icon>
 						</v-btn>
 					</v-flex>
@@ -28,7 +35,10 @@
 					</v-flex>
 					<v-spacer/>
 					<v-flex style="flex: 0">
-						<v-btn small rounded text @click="filterSortSheetExpansions = [sortExpansionPanelIndex]">
+						<v-btn
+							small rounded text
+							@click="filterSortSheetExpansions = [sortExpansionPanelIndex]"
+						>
 							Sort {{ inputSort.type }} <v-icon right small>{{ getSortDirectionIcon(inputSort.isAscending) }}</v-icon>
 						</v-btn>
 					</v-flex>
@@ -89,8 +99,21 @@
 							</v-expansion-panels>
 							<v-layout class="py-2 pr-2">
 								<v-spacer/>
-								<v-btn class="ma-2" :outlined="!hasDirtyInput" @click="onFilterSortAccept">Save</v-btn>
-								<v-btn class="ma-2" text @click="onFilterSortCancel">Cancel</v-btn>
+								<v-btn
+									class="ma-2"
+									:outlined="!hasDirtyInput"
+									:color="hasDirtyInput ? 'primary' : undefined"
+									@click="onFilterSortAccept"
+								>
+									Save
+								</v-btn>
+								<v-btn
+									class="ma-2"
+									text
+									@click="onFilterSortCancel"
+								>
+									Cancel
+								</v-btn>
 							</v-layout>
 						</v-sheet>
 					</v-bottom-sheet>

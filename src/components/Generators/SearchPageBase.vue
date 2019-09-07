@@ -2,9 +2,17 @@
 	<v-container>
 		<v-layout>
 			<search-area
-				:value="searchAreaInput"
 				@change="applySearchConfig"
-			/>
+				:sortNames="sortNames"
+				:filterNames="filterNames"
+				:value="searchAreaInput"
+			>
+				<template v-for="name in filterNames">
+					<slot :name="`filter-${name}`" :slot="`filter-${name}`" slot-scope="{ filters }" :filters="filters">
+						This is the filter area for {{ name }}
+					</slot>
+				</template>
+			</search-area>
 		</v-layout>
 		<v-layout>
 			all results would go here
@@ -29,13 +37,20 @@ export default {
 			};
 		},
 	},
+	created () {
+		// default to first item in sortNames array
+		this.sort = {
+			isAscending: this.sort.isAscending,
+			type: this.sortNames[0] || 'ID',
+		};
+	},
 	data () {
 		return {
 			filters: {
 				name: '',
 			},
 			sort: {
-				isAscending: false,
+				isAscending: true,
 				type: 'ID',
 			},
 		};
@@ -50,6 +65,16 @@ export default {
 				this.sort.isAscending = !!newConfig.sort.isAscending;
 				this.sort.type = newConfig.sort.type;
 			}
+		},
+	},
+	props: {
+		filterNames: {
+			default: () => [],
+			type: Array,
+		},
+		sortNames: {
+			default: () => ['ID', 'Alphabetical'],
+			type: Array,
 		},
 	},
 };
