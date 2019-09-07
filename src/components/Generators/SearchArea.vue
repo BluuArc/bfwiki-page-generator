@@ -20,7 +20,7 @@
 					</v-flex>
 				</v-layout>
 				<v-layout class="mt-2">
-					<v-flex style="flex: 0" v-if="filterNames.length >= 0">
+					<v-flex style="flex: 0" v-if="filterNames.length >= 1">
 						<v-btn small rounded text @click="filterSortSheetExpansions = [0]">
 							<v-icon left small>fa-filter</v-icon>
 							Filter
@@ -32,7 +32,7 @@
 							Sort {{ inputSort.type }} <v-icon right small>{{ getSortDirectionIcon(inputSort.isAscending) }}</v-icon>
 						</v-btn>
 					</v-flex>
-					<v-bottom-sheet v-model="showFilterSortSheet" inset>
+					<v-bottom-sheet v-model="showFilterSortSheet" inset persistent>
 						<v-sheet>
 							<v-expansion-panels accordion multiple v-model="filterSortSheetExpansions">
 								<v-expansion-panel v-if="filterNames.length >= 1">
@@ -73,6 +73,7 @@
 												<v-switch
 													v-model="sort.isAscending"
 													color="grey lighten-1"
+													class="sort-order-switch"
 												>
 													<template v-slot:label>
 														<v-label>
@@ -88,8 +89,8 @@
 							</v-expansion-panels>
 							<v-layout class="py-2 pr-2">
 								<v-spacer/>
-								<v-btn class="ma-2" :outlined="!hasDirtyInput">Save</v-btn>
-								<v-btn class="ma-2" text>Cancel</v-btn>
+								<v-btn class="ma-2" :outlined="!hasDirtyInput" @click="onFilterSortAccept">Save</v-btn>
+								<v-btn class="ma-2" text @click="onFilterSortCancel">Cancel</v-btn>
 							</v-layout>
 						</v-sheet>
 					</v-bottom-sheet>
@@ -129,8 +130,10 @@ export default {
 			};
 		},
 		searchMessage () {
-			// TODO: conditionally add press button message on 'dirty' input
-			return `${this.resultCount} results. Press search button to apply filters.`;
+			return [
+				`${this.resultCount} results.`,
+				this.hasDirtyInput ? 'Press search button to apply filters.' : '',
+			].join(' ');
 		},
 		sortDirectionLabel () {
 			return `${this.sort.isAscending ? 'Ascending' : 'Descending'} Order`;
@@ -138,6 +141,9 @@ export default {
 		sortExpansionPanelIndex () {
 			return this.filterNames.length >= 1 ? 1 : 0;
 		},
+	},
+	created () {
+		this.cleanInput();
 	},
 	data () {
 		return {
@@ -153,11 +159,37 @@ export default {
 		};
 	},
 	methods: {
+		cleanInput () {
+			// TODO: proper deep clone
+			this.filters = { ...this.inputFilters };
+			this.setSortValue(this.inputSort);
+		},
 		emitSearchChange () {
-			logger.debug('emit search change');
+			const { hasChangedFilters, hasChangedSorts, filters, sort } = this;
+			let resultToEmit;
+			if (hasChangedFilters && hasChangedSorts) {
+				resultToEmit = { filters, sort };
+			} else if (hasChangedFilters) {
+				resultToEmit = { filters };
+			} else if (hasChangedSorts) {
+				resultToEmit = { sort };
+			}
+
+			if (resultToEmit) {
+				logger.debug('emitting changed input', resultToEmit);
+				this.$emit('change', resultToEmit);
+			}
 		},
 		getSortDirectionIcon (isAscending) {
 			return isAscending ? 'fa-sort-up' : 'fa-sort-down';
+		},
+		onFilterSortAccept () {
+			this.emitSearchChange();
+			this.showFilterSortSheet = false;
+		},
+		onFilterSortCancel () {
+			this.cleanInput();
+			this.showFilterSortSheet = false;
 		},
 		setSortValue (newValue = {}) {
 			const { isAscending = this.sort.isAscending, type = this.sort.type } = newValue;
@@ -170,7 +202,7 @@ export default {
 	},
 	props: {
 		filterNames: {
-			default: () => ['Filter 1', 'Filter 2'],
+			default: () => [],
 			type: Array,
 		},
 		loading: {
@@ -196,6 +228,12 @@ export default {
 				this.showFilterSortSheet = true;
 			}
 		},
+		inputFilters () {
+			this.cleanInput();
+		},
+		inputSort () {
+			this.cleanInput();
+		},
 	},
 };
 </script>
@@ -203,5 +241,10 @@ export default {
 <style lang="scss">
 .search-area {
 	width: 100%;
+
+}
+
+.sort-order-switch .v-input--selection-controls__input {
+	transform: rotateZ(-90deg);
 }
 </style>
