@@ -1,5 +1,5 @@
 <template functional>
-  <section>
+  <section class="text-center">
 		<p v-text="props.message"/>
     <v-progress-linear
       v-if="props.progress < 0"

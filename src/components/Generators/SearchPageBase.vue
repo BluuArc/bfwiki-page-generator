@@ -1,10 +1,8 @@
 <template>
-	<v-container fill-height>
-		<section class="search-page">
+	<section class="search-page">
+		<v-container id="search-area" :style="searchAreaStyle" class="pa-0">
 			<search-area
-				id="search-area"
 				:disabled="resultsAreLoading"
-				:style="searchAreaStyle"
 				@change="applySearchConfig"
 				:sortNames="sortNames"
 				:filterNames="filterNames"
@@ -16,8 +14,10 @@
 					</slot>
 				</template>
 			</search-area>
-			<div id="result-area">
-				<slot name="result-area">
+		</v-container>
+		<div id="result-area">
+			<slot name="result-area">
+				<v-container>
 					<promise-wait
 						:promise="resultsPromise"
 						:loadingMessage="resultLoadingMessage"
@@ -38,20 +38,31 @@
 							</slot>
 						</template>
 					</promise-wait>
-				</slot>
-			</div>
-			<div id="pagination-area">
-				pagination would go here
-			</div>
-		</section>
-	</v-container>
+				</v-container>
+			</slot>
+		</div>
+		<div id="pagination-area">
+			<v-expand-transition>
+				<v-footer v-if="!resultsAreLoading" class="px-2">
+					<v-pagination
+						:value="paginationInput"
+						@input="$v => pageIndex = $v - 1"
+						:length="numPages"
+						:total-visible="paginationMaxVisible"
+						prev-icon="fa-angle-left"
+						next-icon="fa-angle-right"
+					/>
+				</v-footer>
+			</v-expand-transition>
+		</div>
+	</section>
 </template>
 
 <script>
+import { getNumberOrDefault, getRandomToken } from '@/utilities/utils';
 import PromiseWait from '@/components/utilities/PromiseWait';
 import SearchArea from './SearchArea';
 import getLogger from '@/utilities/Logger';
-import { getRandomToken } from '@/utilities/utils';
 
 const logger = getLogger('SearchPageBase');
 export default {
@@ -60,13 +71,38 @@ export default {
 		SearchArea,
 	},
 	computed: {
+		numPages () {
+			return Math.ceil(this.allResultsSorted.length / this.pageSize);
+		},
+		paginationContainerClasses () {
+			return {
+				'text-center': this.$vuetify.breakpoint.xsOnly,
+				'text-right': this.$vuetify.breakpoint.smAndUp,
+			};
+		},
+		paginationInput () {
+			return this.pageIndex + 1;
+		},
+		paginationMaxVisible () {
+			let maxAmountToShow;
+			if (this.$vuetify.breakpoint.mdAndUp) {
+				maxAmountToShow = 20;
+			} else if (this.$vuetify.breakpoint.smOnly) {
+				maxAmountToShow = 10;
+			} else {
+				maxAmountToShow = 4;
+			}
+			return maxAmountToShow;
+		},
 		resultsToShow () {
-			// TODO: add pagination logic
-			return this.allResultsSorted;
+			const { pageIndex, pageSize } = this;
+			const startIndex = pageIndex * pageSize;
+			return this.allResultsSorted.slice(startIndex, startIndex + pageSize);
 		},
 		searchAreaInput () {
 			return {
 				filters: this.filters,
+				pageSize: this.pageSize,
 				sort: this.sort,
 			};
 		},
@@ -77,6 +113,8 @@ export default {
 		},
 	},
 	created () {
+		this.pageSize = getNumberOrDefault(this.defaultPageSize, 36);
+
 		// default to first item in sortNames array
 		this.sort = {
 			isAscending: this.sort.isAscending,
@@ -92,6 +130,8 @@ export default {
 			allResultsFiltered: [],
 			allResultsSorted: [],
 			filters: {},
+			pageIndex: 0,
+			pageSize: 1,
 			resultLoadProgress: -1,
 			resultLoadingMessage: 'Loading data...',
 			resultsAreLoading: false,
@@ -119,6 +159,10 @@ export default {
 					this.onSortChange();
 				}
 			}
+
+			if (newConfig.hasOwnProperty('pageSize')) {
+				this.pageSize = newConfig.pageSize;
+			}
 		},
 		onFilterChange () {
 			logger.debug('onFilterChange', {
@@ -128,6 +172,7 @@ export default {
 			this.resultsAreLoading = true;
 			this.resultLoadProgress = 0;
 			this.resultLoadingMessage = 'Filtering data...';
+			this.allResultsFiltered = [];
 			const startToken = this.resetStartToken();
 			this.resultsPromise = this.getFilteredData(this.filters, this.sort)
 				.then(data => {
@@ -148,6 +193,7 @@ export default {
 			this.resultsAreLoading = true;
 			this.resultLoadProgress = 0;
 			this.resultLoadingMessage = 'Sorting data...';
+			this.allResultsSorted = [];
 			const startToken = this.resetStartToken();
 			this.resultsPromise = this.getSortedData(this.allResultsFiltered, this.sort)
 				.then(data => {
@@ -168,6 +214,10 @@ export default {
 		},
 	},
 	props: {
+		defaultPageSize: {
+			default: 36,
+			type: Number,
+		},
 		filterNames: {
 			default: () => [],
 			type: Array,
@@ -187,7 +237,7 @@ export default {
 				logger.debug('default getData with mock delay', { filters, sorts });
 				return new Promise(resolve => {
 					setTimeout(() => {
-						resolve(new Array(100).fill(0));
+						resolve(new Array(1000).fill(0).map((_, i) => i + 1));
 					}, 1500);
 				});
 			},
@@ -205,6 +255,14 @@ export default {
 			type: Array,
 		},
 	},
+	watch: {
+		allResultsSorted () {
+			this.pageIndex = 0;
+		},
+		pageSize (newValue) {
+			this.pageIndex = 0;
+		},
+	},
 };
 </script>
 
@@ -215,6 +273,9 @@ export default {
 	display: grid;
 	grid-template-rows: auto 1fr auto;
 	grid-template-columns: 1fr;
+	grid-gap: 0.5em;
+
+	padding-top: 0.5em;
 
 	#search-area {
 		position: sticky;
