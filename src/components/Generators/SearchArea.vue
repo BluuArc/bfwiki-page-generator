@@ -1,6 +1,6 @@
 <template>
 	<section class="search-area">
-		<v-card flat :loading="loading">
+		<v-card flat :disabled="disabled">
 			<v-container fluid>
 				<v-layout align-baseline>
 					<v-flex>
@@ -224,13 +224,13 @@ export default {
 		},
 	},
 	props: {
+		disabled: {
+			default: false,
+			type: Boolean,
+		},
 		filterNames: {
 			default: () => [],
 			type: Array,
-		},
-		loading: {
-			default: false,
-			type: Boolean,
 		},
 		resultCount: {
 			default: 0,
