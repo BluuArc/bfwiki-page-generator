@@ -204,6 +204,7 @@ export class BfDatabase {
 	 * @param {Array<string>} arg0.extractedFields
 	 * @param {object} arg0.filters
 	 * @param {object?} arg0.inputDb
+	 * @param {boolean?} arg0.keysAndDb return the keys and database
 	 * @param {string?} arg0.server
 	 * @param {object?} arg0.sortOptions
 	 * @param {string} arg0.table
@@ -212,6 +213,7 @@ export class BfDatabase {
 		extractedFields,
 		filters,
 		inputDb,
+		keysAndDb = false,
 		server = SERVER_NAME_MAPPING.Global,
 		sortOptions,
 		table,
@@ -220,12 +222,15 @@ export class BfDatabase {
 		const db = inputDb || await this._getDatamineDb({ server, table });
 		const filteredKeys = dbFilters.get(table)({ db, filters });
 		logger.debug({ allKeys: Object.keys(db), filteredKeys, filters, server, table });
+		let resultingKeys = filteredKeys;
+		if ((keysOnly || keysAndDb) && typeof sortOptions === 'object') {
+			resultingKeys = dbSorts.get(table)({ db, keys: filteredKeys, sortOptions });
+		}
+
 		if (keysOnly) {
-			return typeof sortOptions === 'object'
-				? dbSorts.get(table)({ db, keys: filteredKeys, sortOptions })
-				: filteredKeys;
+			return resultingKeys;
 		} else {
-			return filteredKeys.reduce((acc, key) => {
+			const filteredDb = filteredKeys.reduce((acc, key) => {
 				const initialEntry = db[key];
 				const filteredEntry = extractedFields.length === 0
 					? initialEntry // get everything
@@ -239,6 +244,8 @@ export class BfDatabase {
 				acc[key] = filteredEntry;
 				return acc;
 			}, {});
+
+			return keysAndDb ? { db: filteredDb, keys: resultingKeys } : filteredDb;
 		}
 	}
 

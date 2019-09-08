@@ -1,13 +1,13 @@
 <template>
-	<search-page-base/>
+	<search-page/>
 </template>
 
 <script>
-import SearchPageBase from '@/components/Generators/SearchPageBase';
+import SearchPage from '@/components/Generators/Unit/SearchPage';
 
 export default {
 	components: {
-		SearchPageBase,
+		SearchPage,
 	},
 };
 </script>
