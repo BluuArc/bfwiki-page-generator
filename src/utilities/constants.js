@@ -62,6 +62,7 @@ export const DATA_MAPPING = Object.freeze({
 });
 
 export const SETTING_KEYS = Object.freeze({
+	DEBUG_MODE: 'debugMode',
 	DEFAULT_SERVER: 'defaultServer',
 	USE_LIGHT_THEME: 'useLightTheme',
 });

@@ -49,24 +49,14 @@
 
 <script>
 import { SERVERS, SERVER_NAME_MAPPING, SETTING_KEYS } from '@/utilities/constants';
-import LocalStorageStore from '@/utilities/LocalStorageStore';
-
-function getStoredThemeValue () {
-	return LocalStorageStore.getBoolean(SETTING_KEYS.USE_LIGHT_THEME);
-}
-
-function getStoredServerIndex () {
-	const serverName = LocalStorageStore.getString(SETTING_KEYS.DEFAULT_SERVER);
-	const serverIndex = SERVERS.indexOf(serverName);
-	return serverIndex > -1 ? serverIndex : 0;
-}
+import store, { getStoredServerIndex, getStoredThemeValue } from '@/utilities/LocalStorageStoreInstance';
 
 export default {
 	beforeDestroy () {
-		LocalStorageStore.removeEventListener(this);
+		store.removeEventListener(this);
 	},
 	beforeMount () {
-		LocalStorageStore.addEventListener(this, () => {
+		store.addEventListener(this, () => {
 			const isLightTheme = getStoredThemeValue();
 			if (!!isLightTheme !== this.isLightTheme) {
 				this.isLightTheme = isLightTheme;
@@ -99,13 +89,13 @@ export default {
 			if (!serverName) {
 				this.defaultServerIndex = 0; // default to 0
 			} else if (storedIndex !== newValue) {
-				LocalStorageStore.storeValue(SETTING_KEYS.DEFAULT_SERVER, serverName);
+				store.storeValue(SETTING_KEYS.DEFAULT_SERVER, serverName);
 			}
 		},
 		isLightTheme (newValue) {
 			const storedValue = getStoredThemeValue();
 			if (storedValue !== !!newValue) {
-				LocalStorageStore.storeValue(SETTING_KEYS.USE_LIGHT_THEME, !!newValue);
+				store.storeValue(SETTING_KEYS.USE_LIGHT_THEME, !!newValue);
 			}
 		},
 	},

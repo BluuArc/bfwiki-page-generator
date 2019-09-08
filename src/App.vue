@@ -10,11 +10,10 @@
 
 <script>
 import LeftNavDrawer from '@/components/MainShell/LeftNavDrawer';
-import { SETTING_KEYS } from '@/utilities/constants';
 import TopAppBar from '@/components/MainShell/TopAppBar';
-import getLogger, { isDebugMode } from '@/utilities/Logger'; // eslint-disable-line sort-imports
 import bfDatabase from '@/utilities/BfDatabase/index.client';
-import localStorageStore from '@/utilities/LocalStorageStore';
+import getLogger from '@/utilities/Logger';
+import localStorageStore, { getStoredThemeValue, isDebugMode } from '@/utilities/LocalStorageStoreInstance'; // eslint-disable-line sort-imports
 
 export default {
 	beforeMount () {
@@ -27,7 +26,7 @@ export default {
 	},
 	async created () {
 		localStorageStore.addEventListener(this, () => {
-			const storedThemeValue = localStorageStore.getBoolean(SETTING_KEYS.USE_LIGHT_THEME);
+			const storedThemeValue = getStoredThemeValue();
 			if (!storedThemeValue !== this.$vuetify.theme.dark) {
 				this.$vuetify.theme.dark = !storedThemeValue;
 			}

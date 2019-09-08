@@ -1,8 +1,4 @@
-import LocalStorageStore from '@/utilities/LocalStorageStore';
-
-export function isDebugMode () {
-	return LocalStorageStore.getBoolean('debugMode');
-}
+import { isDebugMode } from '@/utilities/LocalStorageStoreInstance';
 
 function noop () {}
 
