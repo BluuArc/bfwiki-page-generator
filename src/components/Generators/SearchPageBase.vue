@@ -17,7 +17,7 @@
 		</v-container>
 		<div id="result-area">
 			<slot name="result-area">
-				<v-container>
+				<v-container class="px-0 pb-0">
 					<promise-wait
 						:promise="resultsPromise"
 						:loadingMessage="resultLoadingMessage"

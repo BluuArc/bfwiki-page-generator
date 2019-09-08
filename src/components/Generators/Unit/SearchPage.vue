@@ -5,6 +5,17 @@
 		:getSortedData="getSortedData"
 		:sortNames="sortNames"
 	>
+		<template v-slot:result="{ data }">
+			<ul class="unit-results-list">
+				<li v-for="entryId in data" :key="getDataKey(entryId)">
+					<v-card :to="getEntryLink(entryId)">
+						<v-container>
+							{{ filteredDb[entryId] }}
+						</v-container>
+					</v-card>
+				</li>
+			</ul>
+		</template>
 	</search-page-base>
 </template>
 
@@ -32,6 +43,9 @@ export default {
 	methods: {
 		getDataKey (entry) {
 			return entry; // each entry is a unit ID
+		},
+		getEntryLink (entry) {
+			return `${this.$route.path}/${entry}`;
 		},
 		getFilteredData (filters, sortOptions) {
 			const server = getStoredServerName();
@@ -64,3 +78,14 @@ export default {
 	},
 };
 </script>
+
+<style lang="scss">
+ul.unit-results-list {
+	list-style-type: none;
+	padding-left: 0;
+
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(350px, auto));
+	grid-gap: 0.5em;
+}
+</style>
