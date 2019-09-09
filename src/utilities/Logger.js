@@ -1,4 +1,4 @@
-import { isDebugMode } from '@/utilities/LocalStorageStoreInstance';
+import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 
 function noop () {}
 
@@ -29,7 +29,7 @@ export default function getLogger (key, styling = DEFAULT_STYLING) {
 			get (obj, prop) {
 				const isKeyedLoggingProp = KEYED_LOGGING_FUNCTIONS.includes(prop);
 				const isDebugProp = prop === 'debug';
-				if (isKeyedLoggingProp && (isDebugProp || isDebugMode())) {
+				if (isKeyedLoggingProp && (isDebugProp || appLocalStorageStore.isDebugMode)) {
 					/**
 					 * @type {Function}
 					 */

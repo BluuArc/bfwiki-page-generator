@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib';
-import { getStoredThemeValue } from '@/utilities/LocalStorageStoreInstance';
+import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 
 Vue.use(Vuetify);
 
@@ -9,7 +9,7 @@ export default new Vuetify({
 		iconfont: 'fa',
 	},
 	theme: {
-		dark: !getStoredThemeValue(),
+		dark: !appLocalStorageStore.useLightTheme,
 		themes: {
 			dark: {
 				error: '#FF9999',

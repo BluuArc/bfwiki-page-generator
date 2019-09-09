@@ -22,9 +22,9 @@
 <script>
 import { DATA_MAPPING } from '@/utilities/constants';
 import SearchPageBase from '../SearchPageBase';
+import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import getLogger from '@/utilities/Logger';
-import { getStoredServerName } from '@/utilities/LocalStorageStoreInstance';
 
 const UNIT_FIELDS = ['id', 'name', 'guide_id', 'rarity', 'element'];
 const logger = getLogger('UnitSearchPage');
@@ -48,7 +48,7 @@ export default {
 			return `${this.$route.path}/${entry}`;
 		},
 		getFilteredData (filters, sortOptions) {
-			const server = getStoredServerName();
+			const server = appLocalStorageStore.serverName;
 			const table = DATA_MAPPING.units.key;
 			return bfDatabase.then(worker => {
 				return worker.getFilteredDb({
@@ -69,7 +69,7 @@ export default {
 			return bfDatabase.then(worker => {
 				return worker.getSortedKeys({
 					keys: filteredKeys,
-					server: getStoredServerName(),
+					server: appLocalStorageStore.serverName,
 					sortOptions,
 					table: DATA_MAPPING.units.key,
 				});

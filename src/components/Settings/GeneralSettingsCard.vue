@@ -41,6 +41,16 @@
 							</v-btn>
 						</v-btn-toggle>
 					</v-row>
+					<v-row align="baseline" class="settings-row">
+						<v-text-field
+							label="Content URL"
+							v-model="contentUrl"
+							@change="changeContentUrl"
+							:placeholder="defaultContentUrl"
+							hint="Leave blank to use application default."
+							persistent-hint
+						/>
+					</v-row>
 				</v-container>
 			</form>
 		</v-card-text>
@@ -48,27 +58,39 @@
 </template>
 
 <script>
-import { SERVERS, SERVER_NAME_MAPPING, SETTING_KEYS } from '@/utilities/constants';
-import store, { getStoredServerIndex, getStoredThemeValue } from '@/utilities/LocalStorageStoreInstance';
+import { DEFAULT_CONTENT_URLS, SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
+import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
+
+function getCurrentServerUrl () {
+	return appLocalStorageStore.getUrlForServer(appLocalStorageStore.serverName);
+}
 
 export default {
 	beforeDestroy () {
-		store.removeEventListener(this);
+		appLocalStorageStore.store.removeEventListener(this);
 	},
 	beforeMount () {
-		store.addEventListener(this, () => {
-			const isLightTheme = getStoredThemeValue();
+		appLocalStorageStore.store.addEventListener(this, () => {
+			const isLightTheme = appLocalStorageStore.useLightTheme;
 			if (!!isLightTheme !== this.isLightTheme) {
 				this.isLightTheme = isLightTheme;
 			}
 
-			const storedServerIndex = getStoredServerIndex();
+			const storedServerIndex = appLocalStorageStore.serverIndex;
 			if (storedServerIndex !== this.defaultServerIndex) {
 				this.defaultServerIndex = storedServerIndex;
+			}
+
+			const storedContentUrl = getCurrentServerUrl();
+			if (storedContentUrl !== this.contentUrl) {
+				this.contentUrl = storedContentUrl;
 			}
 		});
 	},
 	computed: {
+		defaultContentUrl () {
+			return DEFAULT_CONTENT_URLS[SERVERS[this.defaultServerIndex]];
+		},
 		serverNameValuePairs () {
 			return SERVERS.map(key => ({
 				name: SERVER_NAME_MAPPING[key],
@@ -78,24 +100,35 @@ export default {
 	},
 	data () {
 		return {
-			defaultServerIndex: getStoredServerIndex(),
-			isLightTheme: getStoredThemeValue(),
+			contentUrl: getCurrentServerUrl(),
+			defaultServerIndex: appLocalStorageStore.serverIndex,
+			isLightTheme: appLocalStorageStore.useLightTheme,
 		};
+	},
+	methods: {
+		changeContentUrl () {
+			const { contentUrl } = this;
+			const storedContentUrl = getCurrentServerUrl();
+			if (contentUrl !== storedContentUrl) {
+				appLocalStorageStore.setUrlForServer(appLocalStorageStore.serverName, contentUrl);
+			}
+		},
 	},
 	watch: {
 		defaultServerIndex (newValue) {
 			const serverName = SERVERS[newValue];
-			const storedIndex = getStoredServerIndex();
+			const storedIndex = appLocalStorageStore.serverIndex;
 			if (!serverName) {
 				this.defaultServerIndex = 0; // default to 0
 			} else if (storedIndex !== newValue) {
-				store.storeValue(SETTING_KEYS.DEFAULT_SERVER, serverName);
+				appLocalStorageStore.serverName = serverName;
+				this.contentUrl = appLocalStorageStore.getUrlForServer(serverName);
 			}
 		},
 		isLightTheme (newValue) {
-			const storedValue = getStoredThemeValue();
+			const storedValue = appLocalStorageStore.useLightTheme;
 			if (storedValue !== !!newValue) {
-				store.storeValue(SETTING_KEYS.USE_LIGHT_THEME, !!newValue);
+				appLocalStorageStore.useLightTheme = !!newValue;
 			}
 		},
 	},

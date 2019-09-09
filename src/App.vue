@@ -11,9 +11,9 @@
 <script>
 import LeftNavDrawer from '@/components/MainShell/LeftNavDrawer';
 import TopAppBar from '@/components/MainShell/TopAppBar';
+import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import getLogger from '@/utilities/Logger';
-import localStorageStore, { getStoredThemeValue, isDebugMode } from '@/utilities/LocalStorageStoreInstance'; // eslint-disable-line sort-imports
 
 export default {
 	beforeMount () {
@@ -25,20 +25,20 @@ export default {
 		TopAppBar,
 	},
 	async created () {
-		localStorageStore.addEventListener(this, () => {
-			const storedThemeValue = getStoredThemeValue();
+		appLocalStorageStore.store.addEventListener(this, () => {
+			const storedThemeValue = appLocalStorageStore.useLightTheme;
 			if (!storedThemeValue !== this.$vuetify.theme.dark) {
 				this.$vuetify.theme.dark = !storedThemeValue;
 			}
 		});
 
 		const logger = getLogger('APP');
-		if (isDebugMode()) {
+		if (appLocalStorageStore.isDebugMode) {
 			logger.debug('Debug Mode enabled. Adding debug object to window._bfDebug');
 			window._bfDebug = {
+				appLocalStorageStore,
 				context: this,
 				dbWorker: await bfDatabase,
-				localStorageStore,
 				logger: getLogger('DevTools'),
 			};
 		}

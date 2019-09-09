@@ -81,6 +81,13 @@ export class LocalStorageStore {
 	}
 
 	/**
+	 * @param {string} key
+	 */
+	removeItem (key) {
+		this._storage.removeItem(this._makeScopedKey(key));
+	}
+
+	/**
 	 * @param {*} key
 	 * @param {Function} fn
 	 */

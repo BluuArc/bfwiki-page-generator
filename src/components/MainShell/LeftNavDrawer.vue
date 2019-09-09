@@ -28,6 +28,7 @@
 						:key="page.path"
 						:to="page.path"
 						:tabindex="showDrawer ? 0 : -1"
+						@click="showDrawer = false"
 					>
 						<v-list-item-icon>
 							<v-icon v-text="page.listConfig.icon"/>
