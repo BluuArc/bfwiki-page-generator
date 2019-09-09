@@ -1,6 +1,6 @@
 <template>
 	<section class="search-area">
-		<v-card flat :disabled="disabled">
+		<v-card flat :disabled="disabled" raised>
 			<v-container fluid>
 				<v-layout align-baseline>
 					<v-flex>

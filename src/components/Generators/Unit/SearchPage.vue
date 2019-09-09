@@ -8,11 +8,10 @@
 		<template v-slot:result="{ data }">
 			<ul class="unit-results-list">
 				<li v-for="entryId in data" :key="getDataKey(entryId)">
-					<v-card :to="getEntryLink(entryId)">
-						<v-container>
-							{{ filteredDb[entryId] }}
-						</v-container>
-					</v-card>
+					<list-card
+						:to="getEntryLink(entryId)"
+						:entry="filteredDb[entryId]"
+					/>
 				</li>
 			</ul>
 		</template>
@@ -21,6 +20,7 @@
 
 <script>
 import { DATA_MAPPING } from '@/utilities/constants';
+import ListCard from '@/components/BF/Units/ListCard';
 import SearchPageBase from '../SearchPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -30,6 +30,7 @@ const UNIT_FIELDS = ['id', 'name', 'guide_id', 'rarity', 'element'];
 const logger = getLogger('UnitSearchPage');
 export default {
 	components: {
+		ListCard,
 		SearchPageBase,
 	},
 	computed: {

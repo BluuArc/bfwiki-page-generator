@@ -280,6 +280,7 @@ export default {
 	#search-area {
 		position: sticky;
 		top: 0;
+		z-index: 1;
 	}
 
 	#result-area {
