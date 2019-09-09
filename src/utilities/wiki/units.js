@@ -9,6 +9,7 @@ const logger = getLogger('Wiki.Units');
  * deep parsing of BB/SBB/UBB
  * deep parsing of ES
  * evolution materials and cost
+ * passing in of SP skills
  */
 
 function getSpDescription (spEntry = {}) {
@@ -86,9 +87,9 @@ export function generateUnitTemplate (unit) {
 			totaldistr: '',
 		};
 		if (damageFramesEntry) {
-			result.distribute = Array.from(damageFramesEntry['hit dmg% distribution']).join(',');
-			result.frames = Array.from(damageFramesEntry['frame times']).join(',');
-			result.totaldistr = damageFramesEntry['hit dmg& distribution (total)'];
+			result.distribute = Array.from(damageFramesEntry['hit dmg% distribution']).join(', ');
+			result.frames = Array.from(damageFramesEntry['frame times']).join(', ');
+			result.totaldistr = damageFramesEntry['hit dmg% distribution (total)'];
 			result.hits = damageFramesEntry['hits'];
 			if (damageFramesEntry['effect delay time(ms)/frame']) {
 				result.effectdelay = damageFramesEntry['effect delay time(ms)/frame'].split('/')[1];
@@ -142,17 +143,37 @@ export function generateUnitTemplate (unit) {
 	};
 	const getSpInfo = () => {
 		let result = '';
+		logger.debug('getSpInfo', unit);
 		if (unit.feskills) {
-			result = Array.from(unit.feskills).map((feskillEntry, i) => {
-				const baseKey = `|omniskill${i + 1}_`;
-				const skill = feskillEntry.skill;
-				return {
-					[`${baseKey}cat`]: SP_CATEGORY_MAPPING[feskillEntry.category],
-					[`${baseKey}1_sp`]: skill.bp,
-					[`${baseKey}1_desc`]: getSpDescription(feskillEntry),
-				}
-			});
+			const skillsByCategory = Array.from(unit.feskills)
+				.reduce((acc, feskillEntry) => {
+					if (!acc[feskillEntry.category]) {
+						acc[feskillEntry.category] = [];
+					}
+					acc[feskillEntry.category].push(feskillEntry);
+					return acc;
+				}, {});
+			result = Object.keys(skillsByCategory)
+				.sort((a, b) => +a - +b) // sort by category number
+				.map((categoryKey, i) => {
+					const entries = skillsByCategory[categoryKey];
+					const baseKey = `|omniskill${i + 1}_`;
+					// TODO: fix
+					const result = [
+						[`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]],
+					];
+					entries.forEach((feskillEntry, i) => {
+						const baseSkillKey = `${baseKey}${i + 1}_`;
+						result.push([`${baseSkillKey}sp`, feskillEntry.skill.bp]);
+						result.push([`${baseSkillKey}desc`, getSpDescription(feskillEntry)]);
+					});
+					return result
+						.map(([key, value]) => `${key} = ${value}`)
+						.join('\n');
+				}).join('');
+			logger.debug({ result, skillsByCategory });
 		}
+		return result;
 	};
 
 	const attackMoveSpeedData = getMoveSpeedForProperty('attack');
@@ -177,7 +198,7 @@ export function generateUnitTemplate (unit) {
 		desc: unit['leader skill'] && unit['leader skill'].desc,
 		name: unit['leader skill'] && unit['leader skill'].name,
 	};
-	const burstData = ['bb', 'sbb', ' ubb'].reduce((acc, type) => {
+	const burstData = ['bb', 'sbb', 'ubb'].reduce((acc, type) => {
 		acc[type] = getBurstInfo(type);
 		return acc;
 	}, {});
@@ -185,7 +206,6 @@ export function generateUnitTemplate (unit) {
 		desc: unit['extra skill'] && unit['extra skill'].desc,
 		name: unit['extra skill'] && unit['extra skill'].name,
 	};
-	const spInfo = 
 	return `{{{{#if:{{{1|}}}|UnitProp|Unit}}|prop={{{1|}}}
 |id                = ${unit.id}
 |idalt             = 
@@ -195,7 +215,7 @@ export function generateUnitTemplate (unit) {
 |rarity            = ${wikiRarity}
 |cost              = ${unit.cost}
 |maxlv             = ${MAX_LEVEL_MAPPINGS[unitRarity] || ''}
-|basexp            = ${unit.exp_pattern}
+|basexp            = 21
 |gender            = ${(unit.gender || 'U')[0].toUpperCase()}
 |ai                = 
 |animation_attack  = ${getAnimationForProperty('attack')}
@@ -260,7 +280,7 @@ export function generateUnitTemplate (unit) {
 |rec_bonus         = ${impStats.rec}
 |lordonly          = 
 |combo_hits        = ${normalFrameData.hits}
-|normaldc          = ${unit['drop check count']}
+|normaldc          = ${unit['drop check count'] * normalFrameData.hits}
 |ls                = ${lsData.name || ''}
 |lsdescription     = ${lsData.desc || ''}
 |lsnote            = 
@@ -271,7 +291,7 @@ export function generateUnitTemplate (unit) {
 |bbhits            = 
 |bbaoe             = 
 |bbgauge           = ${burstData.bb.gauge}
-|bbdc              = ${burstData.bb.dc}
+|bbdc              =
 |bbmultiplier      = 
 |bb_hpscale        = 
 |bbhits2           = 
@@ -286,7 +306,7 @@ export function generateUnitTemplate (unit) {
 |sbbhits           = 
 |sbbaoe            = 
 |sbbgauge          = ${burstData.sbb.gauge}
-|sbbdc             = ${burstData.sbb.dc}
+|sbbdc             =
 |sbbmultiplier     = 
 |sbb_hpscale       = 
 |sbbhits2          = 
@@ -301,7 +321,7 @@ export function generateUnitTemplate (unit) {
 |ubbhits           = 
 |ubbaoe            = 
 |ubbgauge          = ${burstData.ubb.gauge}
-|ubbdc             = ${burstData.ubb.dc}
+|ubbdc             =
 |ubbmultiplier     = 
 |ubb_hpscale       = 
 |ubbhits2          = 
@@ -328,178 +348,7 @@ export function generateUnitTemplate (unit) {
 |evoitem2          = 
 |evozelcost        = 
 |evokarmacost      = 
-|omniskill1_cat    = 
-|omniskill1_1_sp   = 
-|omniskill1_1_desc = 
-|omniskill1_1_note = 
-|omniskill1_2_sp   = 
-|omniskill1_2_desc = 
-|omniskill1_2_note = 
-|omniskill1_3_sp   = 
-|omniskill1_3_desc = 
-|omniskill1_3_note = 
-|omniskill1_4_sp   = 
-|omniskill1_4_desc = 
-|omniskill1_4_note = 
-|omniskill1_5_sp   = 
-|omniskill1_5_desc = 
-|omniskill1_5_note = 
-|omniskill1_6_sp   = 
-|omniskill1_6_desc = 
-|omniskill1_6_note = 
-|omniskill1_7_sp   = 
-|omniskill1_7_desc = 
-|omniskill1_7_note = 
-|omniskill1_8_sp   = 
-|omniskill1_8_desc = 
-|omniskill1_8_note = 
-|omniskill1_9_sp   = 
-|omniskill1_9_desc = 
-|omniskill1_9_note = 
-|omniskill1_10_sp  = 
-|omniskill1_10_desc= 
-|omniskill1_10_note= 
-|omniskill2_cat    = 
-|omniskill2_1_sp   = 
-|omniskill2_1_desc = 
-|omniskill2_1_note = 
-|omniskill2_2_sp   = 
-|omniskill2_2_desc = 
-|omniskill2_2_note = 
-|omniskill2_3_sp   = 
-|omniskill2_3_desc = 
-|omniskill2_3_note = 
-|omniskill2_4_sp   = 
-|omniskill2_4_desc = 
-|omniskill2_4_note = 
-|omniskill2_5_sp   = 
-|omniskill2_5_desc = 
-|omniskill2_5_note = 
-|omniskill2_6_sp   = 
-|omniskill2_6_desc = 
-|omniskill2_6_note = 
-|omniskill2_7_sp   = 
-|omniskill2_7_desc = 
-|omniskill2_7_note = 
-|omniskill2_8_sp   = 
-|omniskill2_8_desc = 
-|omniskill2_8_note = 
-|omniskill2_9_sp   = 
-|omniskill2_9_desc = 
-|omniskill2_9_note = 
-|omniskill2_10_sp  = 
-|omniskill2_10_desc= 
-|omniskill2_10_note= 
-|omniskill3_cat    = 
-|omniskill3_1_sp   = 
-|omniskill3_1_desc = 
-|omniskill3_1_note = 
-|omniskill3_2_sp   = 
-|omniskill3_2_desc = 
-|omniskill3_2_note = 
-|omniskill3_3_sp   = 
-|omniskill3_3_desc = 
-|omniskill3_3_note = 
-|omniskill3_4_sp   = 
-|omniskill3_4_desc = 
-|omniskill3_4_note = 
-|omniskill3_5_sp   = 
-|omniskill3_5_desc = 
-|omniskill3_5_note = 
-|omniskill3_6_sp   = 
-|omniskill3_6_desc = 
-|omniskill3_6_note = 
-|omniskill3_7_sp   = 
-|omniskill3_7_desc = 
-|omniskill3_7_note = 
-|omniskill3_8_sp   = 
-|omniskill3_8_desc = 
-|omniskill3_8_note = 
-|omniskill3_9_sp   = 
-|omniskill3_9_desc = 
-|omniskill3_9_note = 
-|omniskill3_10_sp  = 
-|omniskill3_10_desc= 
-|omniskill3_10_note= 
-|omniskill4_cat    = 
-|omniskill4_1_sp   = 
-|omniskill4_1_desc = 
-|omniskill4_1_note = 
-|omniskill4_2_sp   = 
-|omniskill4_2_desc = 
-|omniskill4_2_note = 
-|omniskill4_3_sp   = 
-|omniskill4_3_desc = 
-|omniskill4_3_note = 
-|omniskill4_4_sp   = 
-|omniskill4_4_desc = 
-|omniskill4_4_note = 
-|omniskill4_5_sp   = 
-|omniskill4_5_desc = 
-|omniskill4_5_note = 
-|omniskill4_6_sp   = 
-|omniskill4_6_desc = 
-|omniskill4_6_note = 
-|omniskill4_7_sp   = 
-|omniskill4_7_desc = 
-|omniskill4_7_note = 
-|omniskill4_8_sp   = 
-|omniskill4_8_desc = 
-|omniskill4_8_note = 
-|omniskill4_9_sp   = 
-|omniskill4_9_desc = 
-|omniskill4_9_note = 
-|omniskill4_10_sp  = 
-|omniskill4_10_desc= 
-|omniskill4_10_note= 
-|omniskill5_cat    = 
-|omniskill5_1_sp   = 
-|omniskill5_1_desc = 
-|omniskill5_1_note = 
-|omniskill5_2_sp   = 
-|omniskill5_2_desc = 
-|omniskill5_2_note = 
-|omniskill5_3_sp   = 
-|omniskill5_3_desc = 
-|omniskill5_3_note = 
-|omniskill5_4_sp   = 
-|omniskill5_4_desc = 
-|omniskill5_4_note = 
-|omniskill5_5_sp   = 
-|omniskill5_5_desc = 
-|omniskill5_5_note = 
-|omniskill5_6_sp   = 
-|omniskill5_6_desc = 
-|omniskill5_6_note = 
-|omniskill5_7_sp   = 
-|omniskill5_7_desc = 
-|omniskill5_7_note = 
-|omniskill5_8_sp   = 
-|omniskill5_8_desc = 
-|omniskill5_8_note = 
-|omniskill5_9_sp   = 
-|omniskill5_9_desc = 
-|omniskill5_9_note = 
-|omniskill5_10_sp  = 
-|omniskill5_10_desc= 
-|omniskill5_10_note= 
-|omniskill6_cat    = 
-|omniskill6_1_sp   = 
-|omniskill6_1_desc = 
-|omniskill6_1_note = 
-|omniskill6_2_sp   = 
-|omniskill6_2_desc = 
-|omniskill6_2_note = 
-|omniskill6_3_sp   = 
-|omniskill6_3_desc = 
-|omniskill6_3_note = 
-|omniskill6_4_sp   = 
-|omniskill6_4_desc = 
-|omniskill6_4_note = 
-|omniskill6_5_sp   = 
-|omniskill6_5_desc = 
-|omniskill6_5_note = 
-|howtoget          = 
+${getSpInfo()}|howtoget          = 
 |notes             = 
 |incorrectinfo     = 
 |addcat            = 
