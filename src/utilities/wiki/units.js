@@ -3,6 +3,9 @@ import {
 	MAX_LEVEL_MAPPING,
 	SP_CATEGORY_MAPPING,
 } from '@/utilities/bf-core/constants';
+import { DATA_MAPPING } from '@/utilities/constants';
+import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
+import bfDatabase from '@/utilities/BfDatabase/index.client';
 import { extractAttackingDamageFrames } from '@/utilities/bf-core/bursts';
 import { generateTemplateBody } from './utils';
 import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
@@ -153,9 +156,13 @@ function getBurstInfo (type, unit) {
  */
 async function generateSpData (unit) {
 	const result = [];
-	// TODO: pull SP data
-	if (Array.isArray(unit.feskills)) {
-		const skillsByCategory = unit.feskills.reduce((acc, feskillEntry) => {
+	const spData = await bfDatabase.then(worker => worker.getById({
+		id: unit.id,
+		server: appLocalStorageStore.serverName,
+		table: DATA_MAPPING.spEnhancements.key,
+	}));
+	if (spData && Array.isArray(spData.skills)) {
+		const skillsByCategory = spData.skills.reduce((acc, feskillEntry) => {
 			if (!acc[feskillEntry.category]) {
 				acc[feskillEntry.category] = [];
 			}
@@ -366,7 +373,7 @@ export async function generateUnitTemplate (unit) {
 	const unitRarity = +unit.rarity;
 	const wikiRarity = unitRarity === 8
 		? 'Omni'
-		: new Array(unitRarity || 0).fill('★');
+		: new Array(unitRarity || 0).fill('★').join('');
 	/**
 	 * @type {import('./utils').WikiDataPair}
 	 */

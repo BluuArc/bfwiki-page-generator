@@ -28,6 +28,7 @@ export default {
 	},
 	methods: {
 		getWikiTemplate () {
+			logger.debug('in getWikiTemplate');
 			return bfDatabase
 				.then(worker => worker.getById({
 					id: this.entryId,

@@ -69,7 +69,8 @@ export default {
 		pairsToDownload: {
 			handler (newValue) {
 				if (newValue.length > 0) {
-					this.download();
+					this.$store.commit('setAvailableTablesPromise', this.download()
+						.then(() => this.$store.dispatch('updateAvailableTables')));
 				}
 			},
 			immediate: true,

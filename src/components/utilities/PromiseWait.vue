@@ -98,12 +98,16 @@ export default {
 		// delay showing any loading messages to prevent brief flash of message for quickly resolved promises
 		setTimeout(() => {
 			this.isPostMount = true;
-		}, 25);
+		}, this.postMountDelay);
 	},
 	props: {
 		loadingMessage: {
 			default: 'Loading...',
 			type: String,
+		},
+		postMountDelay: {
+			default: 25,
+			type: Number,
 		},
 		progress: {
 			default: -1,
