@@ -4,13 +4,11 @@ import {
 	SP_CATEGORY_MAPPING,
 } from '@/utilities/bf-core/constants';
 import { extractAttackingDamageFrames } from '@/utilities/bf-core/bursts';
-import getLogger from '@/utilities/Logger';
+import { generateTemplateBody } from './utils';
 import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
-const logger = getLogger('Wiki.Units');
 
 // TODO: things to support
 /**
- * multiple attacks
  * lore/flavor text
  * deep parsing of BB/SBB/UBB
  * deep parsing of ES
@@ -18,9 +16,9 @@ const logger = getLogger('Wiki.Units');
  * passing in of SP skills
  */
 
- /**
-	* @typedef {{ distribute: string, effectdelay: string, frames: stirng, hits: number, totaldistr: number }} WikiDamageFramesEntry
-	*/
+/**
+* @typedef {{ distribute: string, effectdelay: string, frames: string, hits: number, totaldistr: number }} WikiDamageFramesEntry
+*/
 
 /**
  * @param {string} prop
@@ -150,36 +148,34 @@ function getBurstInfo (type, unit) {
 }
 
 /**
- * @param {Array} spEnhancements
+ * @param {object} unit
+ * @returns {import('./utils').WikiDataPair}
  */
-function getSpInfo (spEnhancements) {
-	let result = '';
-	if (Array.isArray(spEnhancements)) {
-		const skillsByCategory = spEnhancements.reduce((acc, feskillEntry) => {
+async function generateSpData (unit) {
+	const result = [];
+	// TODO: pull SP data
+	if (Array.isArray(unit.feskills)) {
+		const skillsByCategory = unit.feskills.reduce((acc, feskillEntry) => {
 			if (!acc[feskillEntry.category]) {
 				acc[feskillEntry.category] = [];
 			}
 			acc[feskillEntry.category].push(feskillEntry);
 			return acc;
 		}, {});
-		result = Object.keys(skillsByCategory)
+		Object.keys(skillsByCategory)
 			.sort((a, b) => +a - +b) // sort by category number
-			.map((categoryKey, i) => {
+			.forEach((categoryKey, i) => {
 				const entries = skillsByCategory[categoryKey];
 				const baseKey = `|omniskill${i + 1}_`;
-				const result = [
-					[`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]],
-				];
+				result.push([`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]]);
 				entries.forEach((feskillEntry, i) => {
 					const baseSkillKey = `${baseKey}${i + 1}_`;
-					result.push([`${baseSkillKey}sp`, feskillEntry.skill.bp]);
-					result.push([`${baseSkillKey}desc`, getSpDescription(feskillEntry)]);
+					result.push(
+						[`${baseSkillKey}sp`, feskillEntry.skill.bp],
+						[`${baseSkillKey}desc`, getSpDescription(feskillEntry)],
+					);
 				});
-				// TODO: fix return type
-				return result
-					.map(([key, value]) => `${key} = ${value}`)
-					.join('\n');
-			}).join('');
+			});
 	}
 	return result;
 }
@@ -246,193 +242,166 @@ function generateStatData (unit) {
 
 /**
  * @param {object} unit
+ * @returns {import('./utils').WikiDataPair[]}
  */
-export function generateUnitTemplate (unit) {
-	const unitRarity = +unit.rarity;
-	const wikiRarity = unitRarity === 8
-		? 'Omni'
-		: new Array(unitRarity || 0).fill('★');
-	const getNormalFrameData = () => getDamageFrames(unit['damage frames']);
-	const getBurstFrameData = (burstProp) => {
-		// TODO: handle attack frames properly
-		logger.warn('TODO: handle attack frames properly');
-		return getDamageFrames(unit[burstProp] && unit[burstProp]['damage frames'] && unit[burstProp]['damage frames'][0]);
-	};
-
-	const normalFrameData = getNormalFrameData();
-	const bbFrameData = getBurstFrameData('bb');
-	const sbbFrameData = getBurstFrameData('sbb');
-	const ubbFrameData = getBurstFrameData('ubb');
-	const baseStats = getStatEntriesForType('_base', unit);
-	const lordStats = getStatEntriesForType('_lord', unit);
-	const otherStats = ['anima', 'breaker', 'guardian', 'oracle'].reduce((acc, type) => {
-		acc[type] = getStatEntriesForType(type, unit);
-		return acc;
-	}, {});
-	const impStats = {
-		atk: unit.imp['max atk'],
-		def: unit.imp['max def'],
-		hp: unit.imp['max hp'],
-		rec: unit.imp['max rec'],
-	};
+function generateLsData (unit) {
 	const lsData = {
 		desc: unit['leader skill'] && unit['leader skill'].desc,
 		name: unit['leader skill'] && unit['leader skill'].name,
 	};
-	const burstData = ['bb', 'sbb', 'ubb'].reduce((acc, type) => {
-		acc[type] = getBurstInfo(type, unit);
-		return acc;
-	}, {});
+	return [
+		['|ls', lsData.name || ''],
+		['|lsdescription', lsData.desc || ''],
+		['|lsnote', ''],
+	];
+}
+
+/**
+ * @param {object} unit
+ * @returns {import('./utils').WikiDataPair[]}
+ */
+function generateEsData (unit) {
 	const esData = {
 		desc: unit['extra skill'] && unit['extra skill'].desc,
 		name: unit['extra skill'] && unit['extra skill'].name,
 	};
+	// TODO: condition parsing
+	return [
+		['|es', esData.name || ''],
+		['|esdescription', esData.desc || ''],
+		['|esitem', ''],
+		['|esnote', ''],
+	];
+}
+
+/**
+ * @param {string} type valid types include bb, sbb, and ubb
+ * @param {object} unit
+ * @returns {import('./utils').WikiDataPair[]}
+ */
+function generateBurstDataForBurstType (type, unit) {
+	const burstInfo = getBurstInfo(type, unit);
+	const baseKey = `|${type}`;
+	const result = [
+		[`${baseKey}`, burstInfo.name],
+		[`${baseKey}description`, burstInfo.desc],
+		[`${baseKey}note`, ''],
+		[`${baseKey}type`, ''],
+		[`${baseKey}gauge`, burstInfo.gauge],
+	];
+	burstInfo.attacks.forEach((attack, index) => {
+		const baseAttackKey = `${baseKey}${index > 0 ? (index + 1) : ''}`;
+		result.push([
+			[`${baseAttackKey}_frames`, attack.frames],
+			[`${baseAttackKey}_distribute`, attack.distribute],
+			[`${baseAttackKey}_totaldistr`, attack.totaldistr],
+			[`${baseAttackKey}_effectdelay`, attack.effectdelay],
+			[`${baseAttackKey}hits`, attack.hits],
+			[`${baseAttackKey}aoe`, ''],
+			[`${baseAttackKey}dc`, burstInfo.dc * attack.hits],
+			[`${baseAttackKey}multiplier`, ''],
+			[`${baseAttackKey}_hpscale`, ''],
+		]);
+	});
+	return result;
+}
+
+/**
+ * @param {object} unit
+ * @returns {import('./utils').WikiDataPair[]}
+ */
+function generateMovementDataForNormalAttacks (unit) {
+	const normalFrameData = getDamageFrames(unit['damage frames']);
+	return [
+		['|normal_frames', normalFrameData.frames],
+		['|normal_distribute', normalFrameData.distribute],
+		['|normal_totaldistr', normalFrameData.totaldistr],
+		['|combo_hits', normalFrameData.hits],
+		['|normaldc', +unit['drop check count'] * normalFrameData.hits],
+	];
+}
+
+/**
+ * @param {object} unit
+ * @returns {Promise<import('./utils').WikiDataPair[]>}
+ */
+async function generateFlavorText (unit) {
+	// TODO: pull flavor text
+	return [
+		['|description', ''],
+		['|summon', ''],
+		['|fusion', ''],
+		['|evolution', ''],
+	];
+}
+
+/**
+ * @param {object} unit
+ * @returns {Promise<import('./utils').WikiDataPair[]>}
+ */
+async function generateEvolutionData (unit) {
+	// TODO: pull evolution data
+	return [
+		['|evofrom', ''],
+		['|evointo', ''],
+		['|evomats1', ''],
+		['|evomats2', ''],
+		['|evomats3', ''],
+		['|evomats4', ''],
+		['|evomats5', ''],
+		['|evomats6', ''],
+		['|evomats7', ''],
+		['|evomats8', ''],
+		['|evomats9', ''],
+		['|evoitem', ''],
+		['|evoitem2', ''],
+		['|evozelcost', ''],
+		['|evokarmacost', ''],
+	];
+}
+
+/**
+ * @param {object} unit
+ */
+export async function generateUnitTemplate (unit) {
+	const unitRarity = +unit.rarity;
+	const wikiRarity = unitRarity === 8
+		? 'Omni'
+		: new Array(unitRarity || 0).fill('★');
+	/**
+	 * @type {import('./utils').WikiDataPair}
+	 */
+	const templateData = [
+		['|id', unit.id],
+		['|idalt', ''],
+		['|has_altart', ''],
+		['|no', unit.guide_id],
+		['|element', ELEMENT_NAME_MAPPING[unit.element]],
+		['|rarity', wikiRarity],
+		['|cost', unit.cost],
+		['|maxlv', MAX_LEVEL_MAPPING[unitRarity] || ''],
+		['|basexp', 21],
+		['|gender', (unit.gender || 'U')[0].toUpperCase()],
+		['|ai', ''],
+		...generateMovementData(unit),
+		...(await generateFlavorText()),
+		...generateStatData(unit),
+		['|lordonly', ''],
+		...(await generateEvolutionData(unit)),
+		...generateMovementDataForNormalAttacks(unit),
+		...generateLsData(unit),
+		...generateEsData(unit),
+		...generateBurstDataForBurstType('bb', unit),
+		...generateBurstDataForBurstType('sbb', unit),
+		...generateBurstDataForBurstType('ubb', unit),
+		...(await generateSpData(unit)),
+		['|howtoget', ''],
+		['|notes', ''],
+		['|incorrectinfo', ''],
+		['|addcat', ''],
+		['|addcatname', ''],
+	];
 	return `{{{{#if:{{{1|}}}|UnitProp|Unit}}|prop={{{1|}}}
-|id                = ${unit.id}
-|idalt             = 
-|has_altart        = 
-|no                = ${unit.guide_id}
-|element           = ${ELEMENT_NAME_MAPPING[unit.element]}
-|rarity            = ${wikiRarity}
-|cost              = ${unit.cost}
-|maxlv             = ${MAX_LEVEL_MAPPING[unitRarity] || ''}
-|basexp            = 21
-|gender            = ${(unit.gender || 'U')[0].toUpperCase()}
-|ai                = 
-d|animation_attack  = ${getAnimationForProperty('attack', unit)}
-d|animation_idle    = ${getAnimationForProperty('idle', unit)}
-d|animation_move    = ${getAnimationForProperty('move', unit)}
-d|movespeed_attack  = ${attackMoveSpeedData.movespeed}
-d|movespeed_skill   = ${skillMoveSpeedData.movespeed}
-d|speedtype_attack  = ${attackMoveSpeedData.speedtype}
-d|speedtype_skill   = ${skillMoveSpeedData.speedtype}
-d|movetype_attack   = ${attackMoveSpeedData.movetype}
-d|movetype_skill    = ${skillMoveSpeedData.movetype}
-|normal_frames     = ${normalFrameData.frames}
-|normal_distribute = ${normalFrameData.distribute}
-|normal_totaldistr = ${normalFrameData.totaldistr}
-|bb_frames         = ${bbFrameData.frames}
-|bb_distribute     = ${bbFrameData.distribute}
-|bb_totaldistr     = ${bbFrameData.totaldistr}
-|bb2_frames        = 
-|bb2_distribute    = 
-|bb2_totaldistr    = 
-|sbb_frames        = ${sbbFrameData.frames}
-|sbb_distribute    = ${sbbFrameData.distribute}
-|sbb_totaldistr    = ${sbbFrameData.totaldistr}
-|sbb2_frames       = 
-|sbb2_distribute   = 
-|sbb2_totaldistr   = 
-|ubb_frames        = ${ubbFrameData.frames}
-|ubb_distribute    = ${ubbFrameData.distribute}
-|ubb_totaldistr    = ${ubbFrameData.totaldistr}
-|ubb2_frames       = 
-|ubb2_distribute   = 
-|ubb2_totaldistr   = 
-|bb_effectdelay    = ${bbFrameData.effectdelay}
-|bb2_effectdelay   = 
-|sbb_effectdelay   = ${sbbFrameData.effectdelay}
-|sbb2_effectdelay  = 
-|ubb_effectdelay   = ${ubbFrameData.effectdelay}
-|ubb2_effectdelay  = 
-|description       = 
-|summon            = 
-|fusion            = 
-|evolution         = 
-d|hp_base           = ${baseStats.hp}
-d|atk_base          = ${baseStats.atk}
-d|def_base          = ${baseStats.def}
-d|rec_base          = ${baseStats.rec}
-d|hp_lord           = ${lordStats.hp}
-d|atk_lord          = ${lordStats.atk}
-d|def_lord          = ${lordStats.def}
-d|rec_lord          = ${lordStats.rec}
-d|hp_anima          = ${otherStats.anima.hp}
-d|rec_anima         = ${otherStats.anima.rec}
-d|atk_breaker       = ${otherStats.breaker.atk}
-d|def_breaker       = ${otherStats.breaker.def}
-d|def_guardian      = ${otherStats.guardian.def}
-d|rec_guardian      = ${otherStats.guardian.rec}
-d|def_oracle        = ${otherStats.oracle.def}
-d|rec_oracle        = ${otherStats.oracle.rec}
-d|hp_bonus          = ${impStats.hp}
-d|atk_bonus         = ${impStats.atk}
-d|def_bonus         = ${impStats.def}
-d|rec_bonus         = ${impStats.rec}
-|lordonly          = 
-|combo_hits        = ${normalFrameData.hits}
-|normaldc          = ${unit['drop check count'] * normalFrameData.hits}
-|ls                = ${lsData.name || ''}
-|lsdescription     = ${lsData.desc || ''}
-|lsnote            = 
-|bb                = ${burstData.bb.name}
-|bbdescription     = ${burstData.bb.desc}
-|bbnote            = 
-|bbtype            = 
-|bbhits            = 
-|bbaoe             = 
-|bbgauge           = ${burstData.bb.gauge}
-|bbdc              =
-|bbmultiplier      = 
-|bb_hpscale        = 
-|bbhits2           = 
-|bbaoe2            = 
-|bbdc2             = 
-|bbmultiplier2     = 
-|bb_hpscale2       = 
-|sbb               = ${burstData.sbb.name}
-|sbbdescription    = ${burstData.sbb.desc}
-|sbbnote           = 
-|sbbtype           = 
-|sbbhits           = 
-|sbbaoe            = 
-|sbbgauge          = ${burstData.sbb.gauge}
-|sbbdc             =
-|sbbmultiplier     = 
-|sbb_hpscale       = 
-|sbbhits2          = 
-|sbbaoe2           = 
-|sbbdc2            = 
-|sbbmultiplier2    = 
-|sbb_hpscale2      = 
-|ubb               = ${burstData.ubb.name}
-|ubbdescription    = ${burstData.ubb.desc}
-|ubbnote           = 
-|ubbtype           = 
-|ubbhits           = 
-|ubbaoe            = 
-|ubbgauge          = ${burstData.ubb.gauge}
-|ubbdc             =
-|ubbmultiplier     = 
-|ubb_hpscale       = 
-|ubbhits2          = 
-|ubbaoe2           = 
-|ubbdc2            = 
-|ubbmultiplier2    = 
-|ubb_hpscale2      = 
-|es                = ${esData.name || ''}
-|esitem            = 
-|esdescription     = ${esData.desc || ''}
-|esnote            = 
-|evofrom           = 
-|evointo           = 
-|evomats1          = 
-|evomats2          = 
-|evomats3          = 
-|evomats4          = 
-|evomats5          = 
-|evomats6          = 
-|evomats7          = 
-|evomats8          = 
-|evomats9          = 
-|evoitem           = 
-|evoitem2          = 
-|evozelcost        = 
-|evokarmacost      = 
-${getSpInfo()}|howtoget          = 
-|notes             = 
-|incorrectinfo     = 
-|addcat            = 
-|addcatname        = 
+${generateTemplateBody(templateData)}
 }}`;
 }

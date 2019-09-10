@@ -1,3 +1,4 @@
+import { getHighestRarityUnit } from './units';
 /**
  * @param {object} effect
  */
@@ -46,24 +47,43 @@ export function parseExtraSkillConditions (effect) {
 /**
  * @param {Array} units
  * @param {function(): Promise<object>} unitById
- * @returns {Array<string>}
+ * @returns {Promise<Array<string>>}
  */
-export function conditionHelperGetUnitNames (units = [], unitById) {
-	return units.map(entry => {
+export async function conditionHelperGetUnitNames (units = [], unitById) {
+	const namesResults = await Promise.all(units.map(async (entry) => {
 		const names = [];
 		if (entry.name) {
 			names.push(entry.name);
 		} else {
 			const id = (entry.id) ? entry.id.toString() : entry.toString();
 			if (+id % 10 === 0) {
-				const unit = getHighestRarityUnit(+id, unitById) || {};
+				const unit = (await getHighestRarityUnit(+id, unitById)) || {};
 				names.push(`any evolution of ${unit.name || id}`);
 			} else {
 				// specify a specific unit
-				const unit = unitById(id) || {};
+				const unit = (await unitById(id)) || {};
 				names.push(unit.name || id);
 			}
 		}
 		return names;
-	}).reduce((acc, val) => acc.concat(val), []);
+	}));
+	return namesResults.reduce((acc, names) => acc.concat(...names), []);
+}
+
+/**
+ * @param {Array} items
+ * @param {function(): Promise<object>} itemById
+ * @returns {Promise<Array<string>>}
+ */
+export function conditionHelperGetItemNames (items = [], itemById) {
+	const results = [];
+	return items.map(async (id) => {
+		const item = await itemById(id.toString()) || {};
+		return item.name || id;
+	}).reduce((acc, getItemPromise) => {
+		return acc.then(() => getItemPromise)
+			.then((item) => {
+				results.push(item);
+			});
+	}).then(() => results);
 }
