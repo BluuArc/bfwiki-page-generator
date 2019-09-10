@@ -58,14 +58,14 @@ function getDamageFrames (damageFramesEntry) {
 		distribute: '',
 		effectdelay: '',
 		frames: '',
-		hits: '',
+		hits: 0,
 		totaldistr: '',
 	};
 	if (damageFramesEntry) {
 		result.distribute = Array.from(damageFramesEntry['hit dmg% distribution']).join(', ');
 		result.frames = Array.from(damageFramesEntry['frame times']).join(', ');
 		result.totaldistr = damageFramesEntry['hit dmg% distribution (total)'];
-		result.hits = damageFramesEntry['hits'];
+		result.hits = damageFramesEntry.hits;
 		if (damageFramesEntry['effect delay time(ms)/frame']) {
 			result.effectdelay = damageFramesEntry['effect delay time(ms)/frame'].split('/')[1];
 		}
@@ -141,7 +141,7 @@ function getBurstInfo (type, unit) {
 		result.attacks = getBurstFrameData(type, unit);
 		result.name = burstEntry.name;
 		result.desc = burstEntry.desc;
-		result.dc = burstEntry['drop check count'] * result.attacks.reduce((attackCount, attack) => attackCount + attack.hits);
+		result.dc = burstEntry['drop check count'];
 		result.gauge = burstEntry.levels[burstEntry.levels.length - 1]['bc cost'];
 	}
 	return result;
@@ -290,17 +290,17 @@ function generateBurstDataForBurstType (type, unit) {
 	];
 	burstInfo.attacks.forEach((attack, index) => {
 		const baseAttackKey = `${baseKey}${index > 0 ? (index + 1) : ''}`;
-		result.push([
+		result.push(
 			[`${baseAttackKey}_frames`, attack.frames],
 			[`${baseAttackKey}_distribute`, attack.distribute],
 			[`${baseAttackKey}_totaldistr`, attack.totaldistr],
 			[`${baseAttackKey}_effectdelay`, attack.effectdelay],
 			[`${baseAttackKey}hits`, attack.hits],
 			[`${baseAttackKey}aoe`, ''],
-			[`${baseAttackKey}dc`, burstInfo.dc * attack.hits],
+			[`${baseAttackKey}dc`, (+burstInfo.dc) * attack.hits],
 			[`${baseAttackKey}multiplier`, ''],
 			[`${baseAttackKey}_hpscale`, ''],
-		]);
+		);
 	});
 	return result;
 }
