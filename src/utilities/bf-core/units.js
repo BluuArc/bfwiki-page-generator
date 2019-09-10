@@ -10,7 +10,7 @@ export function getFullName (unit = {}) {
 }
 
 /**
- * @param {string) id
+ * @param {string} id
  * @param {string} baseContentUrl
  * @param {string?} suffix
  */

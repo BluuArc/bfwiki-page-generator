@@ -1,5 +1,11 @@
+import {
+	ELEMENT_NAME_MAPPING,
+	MAX_LEVEL_MAPPING,
+	SP_CATEGORY_MAPPING,
+} from '@/utilities/bf-core/constants';
+import { extractAttackingDamageFrames } from '@/utilities/bf-core/bursts';
 import getLogger from '@/utilities/Logger';
-
+import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
 const logger = getLogger('Wiki.Units');
 
 // TODO: things to support
@@ -12,180 +18,197 @@ const logger = getLogger('Wiki.Units');
  * passing in of SP skills
  */
 
-function getSpDescription (spEntry = {}) {
-	const { desc = '', name = '' } = spEntry.skill;
-	if (desc.trim() === name.trim()) {
-		return desc || '';
-	} else {
-		return (desc.length > name.length)
-			? desc
-			: [name, desc ? `(${desc})` : ''].filter(val => val).join(' ');
+ /**
+	* @typedef {{ distribute: string, effectdelay: string, frames: stirng, hits: number, totaldistr: number }} WikiDamageFramesEntry
+	*/
+
+/**
+ * @param {string} prop
+ * @param {object} unit
+ * @returns {number}
+ */
+function getAnimationForProperty (prop, unit) {
+	let result;
+	if (unit.animations || unit.animations[prop]) {
+		result = unit.animations[prop]['total number of frames'];
 	}
+	return result;
+}
+
+/**
+ * @param {string} prop
+ * @param {object} unit
+ * @returns {{ movespeed: number, movetype: string, speedtype: string }}
+ */
+function getMoveSpeedForProperty (prop, unit) {
+	let result = {};
+	if (unit.movement && unit.movement[prop]) {
+		const movementEntry = unit.movement[prop];
+		result.movespeed = movementEntry['move speed'];
+		result.movetype = movementEntry['move type'];
+		result.speedtype = movementEntry['move speed type'];
+	}
+	return result;
+}
+
+/**
+ * @param {object} damageFramesEntry
+ * @returns {WikiDamageFramesEntry}
+ */
+function getDamageFrames (damageFramesEntry) {
+	const result = {
+		distribute: '',
+		effectdelay: '',
+		frames: '',
+		hits: '',
+		totaldistr: '',
+	};
+	if (damageFramesEntry) {
+		result.distribute = Array.from(damageFramesEntry['hit dmg% distribution']).join(', ');
+		result.frames = Array.from(damageFramesEntry['frame times']).join(', ');
+		result.totaldistr = damageFramesEntry['hit dmg% distribution (total)'];
+		result.hits = damageFramesEntry['hits'];
+		if (damageFramesEntry['effect delay time(ms)/frame']) {
+			result.effectdelay = damageFramesEntry['effect delay time(ms)/frame'].split('/')[1];
+		}
+	}
+	return result;
+}
+
+/**
+ * @param {string} burstProp
+ * @param {object} unit
+ * @returns {WikiDamageFramesEntry[]}
+ */
+function getBurstFrameData (burstProp, unit) {
+	/**
+	 * @type {WikiDamageFramesEntry[]}
+	 */
+	let result = [];
+	if (unit[burstProp] && unit[burstProp]['damage frames']) {
+		const attackingFrames = extractAttackingDamageFrames(unit[burstProp]['damage frames']);
+		result = attackingFrames.map(getDamageFrames);
+	}
+	return result;
+}
+
+/**
+ * @param {object} stats
+ * @param {string} statProp
+ * @returns {number}
+ */
+function getStatEntryOrAverage (stats, statProp) {
+	return typeof stats[statProp] !== 'undefined'
+		? stats[statProp]
+		: Math.floor((stats[`${statProp} max`] + stats[`${statProp} min`]) / 2);
+}
+
+/**
+ * @param {string} type
+ * @param {object} unit
+ * @returns {{ hp: number, atk: number, def: number, rec: number }}
+ */
+function getStatEntriesForType (type, unit) {
+	const result = {
+		atk: 0,
+		def: 0,
+		hp: 0,
+		rec: 0,
+	};
+	if (unit.stats && unit.stats[type]) {
+		const statsForType = unit.stats[type];
+		result.hp = getStatEntryOrAverage(statsForType, 'hp');
+		result.atk = getStatEntryOrAverage(statsForType, 'atk');
+		result.def = getStatEntryOrAverage(statsForType, 'def');
+		result.rec = getStatEntryOrAverage(statsForType, 'rec');
+	}
+	return result;
+}
+
+/**
+ * @param {string} type
+ * @param {object} unit
+ * @returns {{ dc: number, desc: string, gauge: number, name: string, attacks: WikiDamageFramesEntry[] }}
+ */
+function getBurstInfo (type, unit) {
+	const result = {
+		attacks: [],
+		dc: '',
+		desc: '',
+		gauge: '',
+		name: '',
+	};
+	if (unit[type]) {
+		const burstEntry = unit[type];
+		result.attacks = getBurstFrameData(type, unit);
+		result.name = burstEntry.name;
+		result.desc = burstEntry.desc;
+		result.dc = burstEntry['drop check count'] * result.attacks.reduce((attackCount, attack) => attackCount + attack.hits);
+		result.gauge = burstEntry.levels[burstEntry.levels.length - 1]['bc cost'];
+	}
+	return result;
+}
+
+/**
+ * @param {Array} spEnhancements
+ */
+function getSpInfo (spEnhancements) {
+	let result = '';
+	if (Array.isArray(spEnhancements)) {
+		const skillsByCategory = spEnhancements.reduce((acc, feskillEntry) => {
+			if (!acc[feskillEntry.category]) {
+				acc[feskillEntry.category] = [];
+			}
+			acc[feskillEntry.category].push(feskillEntry);
+			return acc;
+		}, {});
+		result = Object.keys(skillsByCategory)
+			.sort((a, b) => +a - +b) // sort by category number
+			.map((categoryKey, i) => {
+				const entries = skillsByCategory[categoryKey];
+				const baseKey = `|omniskill${i + 1}_`;
+				// TODO: fix
+				const result = [
+					[`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]],
+				];
+				entries.forEach((feskillEntry, i) => {
+					const baseSkillKey = `${baseKey}${i + 1}_`;
+					result.push([`${baseSkillKey}sp`, feskillEntry.skill.bp]);
+					result.push([`${baseSkillKey}desc`, getSpDescription(feskillEntry)]);
+				});
+				return result
+					.map(([key, value]) => `${key} = ${value}`)
+					.join('\n');
+			}).join('');
+	}
+	return result;
 }
 
 /**
  * @param {object} unit
  */
 export function generateUnitTemplate (unit) {
-	// TODO: refactor
-	const ELEMENT_NAME_MAPPINGS = {
-		dark: 'Dark',
-		earth: 'Earth',
-		fire: 'Fire',
-		light: 'Light',
-		thunder: 'Thunder',
-	};
-	const MAX_LEVEL_MAPPINGS = {
-		2: 30,
-		3: 40,
-		4: 60,
-		5: 80,
-		6: 100,
-		7: 120,
-		8: 150,
-	};
-	const SP_CATEGORY_MAPPING = Object.freeze({
-		1: 'Parameter Boost',
-		2: 'Spark',
-		3: 'Critical Hits',
-		4: 'Attack Boost',
-		5: 'BB Gauge',
-		6: 'HP Recovery',
-		7: 'Drops',
-		8: 'Ailment Resistance',
-		9: 'Ailment Infliction',
-		10: 'Damage Reduction', // eslint-disable-line sort-keys
-		11: 'Special',
-	});
 	const unitRarity = +unit.rarity;
 	const wikiRarity = unitRarity === 8
 		? 'Omni'
-		: new Array(+unit.rarity || 0).fill('★');
-	const getAnimationForProperty = (prop) => {
-		let result;
-		if (unit.animations || unit.animations[prop]) {
-			result = unit.animations[prop]['total number of frames'];
-		}
-		return result;
-	};
-	const getMoveSpeedForProperty = (prop) => {
-		let result = {};
-		if (unit.movement && unit.movement[prop]) {
-			const movementEntry = unit.movement[prop];
-			result.movespeed = movementEntry['move speed'];
-			result.movetype = movementEntry['move type'];
-			result.speedtype = movementEntry['move speed type'];
-		}
-		return result;
-	};
-	const extractDamageFrames = (damageFramesEntry) => {
-		const result = {
-			distribute: '',
-			effectdelay: '',
-			frames: '',
-			hits: '',
-			totaldistr: '',
-		};
-		if (damageFramesEntry) {
-			result.distribute = Array.from(damageFramesEntry['hit dmg% distribution']).join(', ');
-			result.frames = Array.from(damageFramesEntry['frame times']).join(', ');
-			result.totaldistr = damageFramesEntry['hit dmg% distribution (total)'];
-			result.hits = damageFramesEntry['hits'];
-			if (damageFramesEntry['effect delay time(ms)/frame']) {
-				result.effectdelay = damageFramesEntry['effect delay time(ms)/frame'].split('/')[1];
-			}
-		}
-		return result;
-	};
-	const getNormalFrameData = () => extractDamageFrames(unit['damage frames']);
+		: new Array(unitRarity || 0).fill('★');
+	const getNormalFrameData = () => getDamageFrames(unit['damage frames']);
 	const getBurstFrameData = (burstProp) => {
 		// TODO: handle attack frames properly
 		logger.warn('TODO: handle attack frames properly');
-		return extractDamageFrames(unit[burstProp] && unit[burstProp]['damage frames'] && unit[burstProp]['damage frames'][0]);
-	};
-	const getStatEntryOrAverage = (stats, statProp) => {
-		return typeof stats[statProp] !== 'undefined'
-			? stats[statProp]
-			: Math.floor((stats[`${statProp} max`] + stats[`${statProp} min`]) / 2);
-	};
-	const getStatEntriesForType = (type) => {
-		const result = {
-			atk: 0,
-			def: 0,
-			hp: 0,
-			rec: 0,
-		};
-		if (unit.stats && unit.stats[type]) {
-			const statsForType = unit.stats[type];
-			result.hp = getStatEntryOrAverage(statsForType, 'hp');
-			result.atk = getStatEntryOrAverage(statsForType, 'atk');
-			result.def = getStatEntryOrAverage(statsForType, 'def');
-			result.rec = getStatEntryOrAverage(statsForType, 'rec');
-		}
-		return result;
+		return getDamageFrames(unit[burstProp] && unit[burstProp]['damage frames'] && unit[burstProp]['damage frames'][0]);
 	};
 
-	const getBurstInfo = (type) => {
-		const result = {
-			dc: '',
-			desc: '',
-			gauge: '',
-			name: '',
-		};
-		if (unit[type]) {
-			const burstEntry = unit[type];
-			result.name = burstEntry.name;
-			result.desc = burstEntry.desc;
-			result.dc = burstEntry['drop check count'];
-			result.gauge = burstEntry.levels[burstEntry.levels.length - 1]['bc cost'];
-		}
-		return result;
-	};
-	const getSpInfo = () => {
-		let result = '';
-		logger.debug('getSpInfo', unit);
-		if (unit.feskills) {
-			const skillsByCategory = Array.from(unit.feskills)
-				.reduce((acc, feskillEntry) => {
-					if (!acc[feskillEntry.category]) {
-						acc[feskillEntry.category] = [];
-					}
-					acc[feskillEntry.category].push(feskillEntry);
-					return acc;
-				}, {});
-			result = Object.keys(skillsByCategory)
-				.sort((a, b) => +a - +b) // sort by category number
-				.map((categoryKey, i) => {
-					const entries = skillsByCategory[categoryKey];
-					const baseKey = `|omniskill${i + 1}_`;
-					// TODO: fix
-					const result = [
-						[`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]],
-					];
-					entries.forEach((feskillEntry, i) => {
-						const baseSkillKey = `${baseKey}${i + 1}_`;
-						result.push([`${baseSkillKey}sp`, feskillEntry.skill.bp]);
-						result.push([`${baseSkillKey}desc`, getSpDescription(feskillEntry)]);
-					});
-					return result
-						.map(([key, value]) => `${key} = ${value}`)
-						.join('\n');
-				}).join('');
-			logger.debug({ result, skillsByCategory });
-		}
-		return result;
-	};
-
-	const attackMoveSpeedData = getMoveSpeedForProperty('attack');
-	const skillMoveSpeedData = getMoveSpeedForProperty('skill');
+	const attackMoveSpeedData = getMoveSpeedForProperty('attack', unit);
+	const skillMoveSpeedData = getMoveSpeedForProperty('skill', unit);
 	const normalFrameData = getNormalFrameData();
 	const bbFrameData = getBurstFrameData('bb');
 	const sbbFrameData = getBurstFrameData('sbb');
 	const ubbFrameData = getBurstFrameData('ubb');
-	const baseStats = getStatEntriesForType('_base');
-	const lordStats = getStatEntriesForType('_lord');
+	const baseStats = getStatEntriesForType('_base', unit);
+	const lordStats = getStatEntriesForType('_lord', unit);
 	const otherStats = ['anima', 'breaker', 'guardian', 'oracle'].reduce((acc, type) => {
-		acc[type] = getStatEntriesForType(type);
+		acc[type] = getStatEntriesForType(type, unit);
 		return acc;
 	}, {});
 	const impStats = {
@@ -199,7 +222,7 @@ export function generateUnitTemplate (unit) {
 		name: unit['leader skill'] && unit['leader skill'].name,
 	};
 	const burstData = ['bb', 'sbb', 'ubb'].reduce((acc, type) => {
-		acc[type] = getBurstInfo(type);
+		acc[type] = getBurstInfo(type, unit);
 		return acc;
 	}, {});
 	const esData = {
@@ -211,16 +234,16 @@ export function generateUnitTemplate (unit) {
 |idalt             = 
 |has_altart        = 
 |no                = ${unit.guide_id}
-|element           = ${ELEMENT_NAME_MAPPINGS[unit.element]}
+|element           = ${ELEMENT_NAME_MAPPING[unit.element]}
 |rarity            = ${wikiRarity}
 |cost              = ${unit.cost}
-|maxlv             = ${MAX_LEVEL_MAPPINGS[unitRarity] || ''}
+|maxlv             = ${MAX_LEVEL_MAPPING[unitRarity] || ''}
 |basexp            = 21
 |gender            = ${(unit.gender || 'U')[0].toUpperCase()}
 |ai                = 
-|animation_attack  = ${getAnimationForProperty('attack')}
-|animation_idle    = ${getAnimationForProperty('idle')}
-|animation_move    = ${getAnimationForProperty('move')}
+|animation_attack  = ${getAnimationForProperty('attack', unit)}
+|animation_idle    = ${getAnimationForProperty('idle', unit)}
+|animation_move    = ${getAnimationForProperty('move', unit)}
 |movespeed_attack  = ${attackMoveSpeedData.movespeed}
 |movespeed_skill   = ${skillMoveSpeedData.movespeed}
 |speedtype_attack  = ${attackMoveSpeedData.speedtype}
