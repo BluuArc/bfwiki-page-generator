@@ -27,7 +27,7 @@ import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
  */
 function getAnimationForProperty (prop, unit) {
 	let result;
-	if (unit.animations || unit.animations[prop]) {
+	if (unit.animations && unit.animations[prop]) {
 		result = unit.animations[prop]['total number of frames'];
 	}
 	return result;
@@ -185,13 +185,12 @@ async function generateSpData (unit) {
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateMovementData (unit) {
-	const props = ['attack', 'skill'];
 	const movespeedProps = ['movespeed', 'speedtype', 'movetype'];
 	const result = [];
-	props.concat(['move']).forEach(prop => {
+	['attack', 'idle', 'move'].forEach(prop => {
 		result.push([`|animation_${prop}`, getAnimationForProperty(prop, unit)]);
 	});
-	props.forEach(prop => {
+	['attack', 'skill'].forEach(prop => {
 		const moveSpeedData = getMoveSpeedForProperty(prop, unit);
 		movespeedProps.forEach(movespeedProp => {
 			result.push([`|${movespeedProp}_${prop}`, moveSpeedData[movespeedProp]]);
