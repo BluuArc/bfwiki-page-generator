@@ -24,3 +24,18 @@ export function getImageUrls (id, baseContentUrl, suffix = '') {
 		ills_thum: `${baseUrl}/unit_ills_thum_${id}${suffix}.png`,
 	};
 }
+
+/**
+ * @param {number} category
+ * @param {function(): Promise<object>} unitById
+ * @returns {Promise<object>}
+ */
+export async function getHighestRarityUnit (category, unitById) {
+	for (let i = 9; i >= 0; --i) {
+		const id = `${+category + i}`;
+		const unit = await unitById(id);
+		if (unit) {
+			return unit;
+		}
+	}
+}

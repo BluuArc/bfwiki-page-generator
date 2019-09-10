@@ -167,7 +167,6 @@ function getSpInfo (spEnhancements) {
 			.map((categoryKey, i) => {
 				const entries = skillsByCategory[categoryKey];
 				const baseKey = `|omniskill${i + 1}_`;
-				// TODO: fix
 				const result = [
 					[`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]],
 				];
@@ -176,11 +175,72 @@ function getSpInfo (spEnhancements) {
 					result.push([`${baseSkillKey}sp`, feskillEntry.skill.bp]);
 					result.push([`${baseSkillKey}desc`, getSpDescription(feskillEntry)]);
 				});
+				// TODO: fix return type
 				return result
 					.map(([key, value]) => `${key} = ${value}`)
 					.join('\n');
 			}).join('');
 	}
+	return result;
+}
+
+/**
+ * @param {object} unit
+ * @returns {import('./utils').WikiDataPair[]}
+ */
+function generateMovementData (unit) {
+	const props = ['attack', 'skill'];
+	const movespeedProps = ['movespeed', 'speedtype', 'movetype'];
+	const result = [];
+	props.concat(['move']).forEach(prop => {
+		result.push([`|animation_${prop}`, getAnimationForProperty(prop, unit)]);
+	});
+	props.forEach(prop => {
+		const moveSpeedData = getMoveSpeedForProperty(prop, unit);
+		movespeedProps.forEach(movespeedProp => {
+			result.push([`|${movespeedProp}_${prop}`, moveSpeedData[movespeedProp]]);
+		});
+	});
+	return result;
+}
+
+/**
+ * @param {object} unit
+ * @returns {import('./utils').WikiDataPair[]}
+ */
+function generateStatData (unit) {
+	const statProps = ['hp', 'atk', 'def', 'rec'];
+	const baseStats = getStatEntriesForType('_base', unit);
+	const lordStats = getStatEntriesForType('_lord', unit);
+	const variedStatsByType = {
+		anima: ['hp', 'rec'],
+		breaker: ['atk', 'def'],
+		guardian: ['def', 'rec'],
+		oracle: ['def', 'rec'],
+	};
+	const impStats = {
+		atk: unit.imp['max atk'],
+		def: unit.imp['max def'],
+		hp: unit.imp['max hp'],
+		rec: unit.imp['max rec'],
+	};
+	const result = [];
+	statProps.forEach(stat => {
+		result.push([`|${stat}_base`, baseStats[stat]]);
+	});
+	statProps.forEach(stat => {
+		result.push([`|${stat}_lord`, lordStats[stat]]);
+	});
+
+	['anima', 'breaker', 'guardian', 'oracle'].forEach(type => {
+		const statEntry = getStatEntriesForType(type, unit);
+		variedStatsByType[type].forEach(stat => {
+			result.push([`|${stat}_${type}`, statEntry[stat]]);
+		});
+	});
+	statProps.forEach(stat => {
+		result.push([`|${stat}_bonus`, impStats[stat]]);
+	});
 	return result;
 }
 
@@ -199,8 +259,6 @@ export function generateUnitTemplate (unit) {
 		return getDamageFrames(unit[burstProp] && unit[burstProp]['damage frames'] && unit[burstProp]['damage frames'][0]);
 	};
 
-	const attackMoveSpeedData = getMoveSpeedForProperty('attack', unit);
-	const skillMoveSpeedData = getMoveSpeedForProperty('skill', unit);
 	const normalFrameData = getNormalFrameData();
 	const bbFrameData = getBurstFrameData('bb');
 	const sbbFrameData = getBurstFrameData('sbb');
@@ -241,15 +299,15 @@ export function generateUnitTemplate (unit) {
 |basexp            = 21
 |gender            = ${(unit.gender || 'U')[0].toUpperCase()}
 |ai                = 
-|animation_attack  = ${getAnimationForProperty('attack', unit)}
-|animation_idle    = ${getAnimationForProperty('idle', unit)}
-|animation_move    = ${getAnimationForProperty('move', unit)}
-|movespeed_attack  = ${attackMoveSpeedData.movespeed}
-|movespeed_skill   = ${skillMoveSpeedData.movespeed}
-|speedtype_attack  = ${attackMoveSpeedData.speedtype}
-|speedtype_skill   = ${skillMoveSpeedData.speedtype}
-|movetype_attack   = ${attackMoveSpeedData.movetype}
-|movetype_skill    = ${skillMoveSpeedData.movetype}
+d|animation_attack  = ${getAnimationForProperty('attack', unit)}
+d|animation_idle    = ${getAnimationForProperty('idle', unit)}
+d|animation_move    = ${getAnimationForProperty('move', unit)}
+d|movespeed_attack  = ${attackMoveSpeedData.movespeed}
+d|movespeed_skill   = ${skillMoveSpeedData.movespeed}
+d|speedtype_attack  = ${attackMoveSpeedData.speedtype}
+d|speedtype_skill   = ${skillMoveSpeedData.speedtype}
+d|movetype_attack   = ${attackMoveSpeedData.movetype}
+d|movetype_skill    = ${skillMoveSpeedData.movetype}
 |normal_frames     = ${normalFrameData.frames}
 |normal_distribute = ${normalFrameData.distribute}
 |normal_totaldistr = ${normalFrameData.totaldistr}
@@ -281,26 +339,26 @@ export function generateUnitTemplate (unit) {
 |summon            = 
 |fusion            = 
 |evolution         = 
-|hp_base           = ${baseStats.hp}
-|atk_base          = ${baseStats.atk}
-|def_base          = ${baseStats.def}
-|rec_base          = ${baseStats.rec}
-|hp_lord           = ${lordStats.hp}
-|atk_lord          = ${lordStats.atk}
-|def_lord          = ${lordStats.def}
-|rec_lord          = ${lordStats.rec}
-|hp_anima          = ${otherStats.anima.hp}
-|rec_anima         = ${otherStats.anima.rec}
-|atk_breaker       = ${otherStats.breaker.atk}
-|def_breaker       = ${otherStats.breaker.def}
-|def_guardian      = ${otherStats.guardian.def}
-|rec_guardian      = ${otherStats.guardian.rec}
-|def_oracle        = ${otherStats.oracle.def}
-|rec_oracle        = ${otherStats.oracle.rec}
-|hp_bonus          = ${impStats.hp}
-|atk_bonus         = ${impStats.atk}
-|def_bonus         = ${impStats.def}
-|rec_bonus         = ${impStats.rec}
+d|hp_base           = ${baseStats.hp}
+d|atk_base          = ${baseStats.atk}
+d|def_base          = ${baseStats.def}
+d|rec_base          = ${baseStats.rec}
+d|hp_lord           = ${lordStats.hp}
+d|atk_lord          = ${lordStats.atk}
+d|def_lord          = ${lordStats.def}
+d|rec_lord          = ${lordStats.rec}
+d|hp_anima          = ${otherStats.anima.hp}
+d|rec_anima         = ${otherStats.anima.rec}
+d|atk_breaker       = ${otherStats.breaker.atk}
+d|def_breaker       = ${otherStats.breaker.def}
+d|def_guardian      = ${otherStats.guardian.def}
+d|rec_guardian      = ${otherStats.guardian.rec}
+d|def_oracle        = ${otherStats.oracle.def}
+d|rec_oracle        = ${otherStats.oracle.rec}
+d|hp_bonus          = ${impStats.hp}
+d|atk_bonus         = ${impStats.atk}
+d|def_bonus         = ${impStats.def}
+d|rec_bonus         = ${impStats.rec}
 |lordonly          = 
 |combo_hits        = ${normalFrameData.hits}
 |normaldc          = ${unit['drop check count'] * normalFrameData.hits}
