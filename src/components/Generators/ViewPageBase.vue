@@ -28,7 +28,10 @@
 								/>
 							</template>
 							<template v-else-if="i === tabIndexJson">
-								<span>This is the JSON explorer page</span>
+								<json-explorer-view
+									v-if="!isLoading"
+									:json="typeof dataEntry === 'object' ? dataEntry : { error: 'No data found' }"
+								/>
 							</template>
 							<template v-else>
 								<span>This is the slot for {{ name }}</span>
@@ -43,12 +46,14 @@
 
 <script>
 import { DEFAULT_TAB_NAMES } from '@/utilities/constants';
+import JsonExplorerView from './JsonExplorerView';
 import ProgressViewer from '@/components/utilities/ProgressViewer';
 import { VProgressLinear } from 'vuetify/lib';
 import WikiTemplateViewer from './WikiTemplateViewer';
 
 export default {
 	components: {
+		JsonExplorerView,
 		ProgressViewer,
 		VProgressLinear, // eslint-disable-line vue/no-unused-components
 		WikiTemplateViewer,
