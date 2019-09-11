@@ -45,7 +45,8 @@ export default {
 		pairsToDelete: {
 			handler (newValue) {
 				if (newValue.length > 0) {
-					this.delete();
+					this.$store.commit('setAvailableTablesPromise', this.delete()
+						.then(() => this.$store.dispatch('updateAvailableTables')));
 				}
 			},
 			immediate: true,

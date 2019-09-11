@@ -5,7 +5,7 @@
       @click.stop="$emit('toggledrawer')"
     />
     <v-toolbar-title class="headline">
-      {{ $route.name }}
+      {{ $store.state.titleOverride || $route.name }}
     </v-toolbar-title>
     <v-spacer/>
     <v-divider vertical/>

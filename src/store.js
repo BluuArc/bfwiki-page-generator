@@ -26,9 +26,13 @@ const store = new Vuex.Store({
 		setAvailableTablesPromise (state, promise) {
 			state.availableTablesPromise = promise;
 		},
+		setTitleOverride (state, newValue) {
+			state.titleOverride = newValue;
+		},
 	},
 	state: {
 		availableTablesPromise: Promise.resolve([]),
+		titleOverride: '',
 	},
 });
 

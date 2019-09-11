@@ -72,8 +72,13 @@ export const BASE_DATAMINE_URL = 'https://raw.githubusercontent.com/cheahjs/brav
 
 export const ELEMENTS = Object.freeze(['fire', 'water', 'earth', 'thunder', 'light', 'dark']);
 
-export const DEFAULT_CONTENT_URLS = {
+export const DEFAULT_CONTENT_URLS = Object.freeze({
 	EU: 'http://static-bravefrontier.gumi-europe.net/content',
 	GL: 'https://dv5bk1m8igv7v.cloudfront.net/asset/2400/content',
 	JP: 'http://cdn.android.brave.a-lim.jp',
-};
+});
+
+export const DEFAULT_TAB_NAMES = Object.freeze({
+	JSON_EXPLORER: 'JSON Explorer',
+	WIKI_TEMPLATE: 'Wiki Template',
+});
