@@ -12,6 +12,6 @@ module.exports = {
 		}
 		config.plugins.unshift(new ThreadsPlugin());
 	},
-	outputDir: 'dist/bf-wiki-page-generator',
+	outputDir: 'dist/bfwiki-page-generator',
 	publicPath: './',
 };

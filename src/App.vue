@@ -5,11 +5,13 @@
 		<v-content>
 			<router-view/>
 		</v-content>
+		<site-trackers/>
 	</v-app>
 </template>
 
 <script>
 import LeftNavDrawer from '@/components/MainShell/LeftNavDrawer';
+import SiteTrackers from '@/components/MainShell/SiteTrackers';
 import TopAppBar from '@/components/MainShell/TopAppBar';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -22,6 +24,7 @@ export default {
 	},
 	components: {
 		LeftNavDrawer,
+		SiteTrackers,
 		TopAppBar,
 	},
 	async created () {

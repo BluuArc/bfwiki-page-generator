@@ -13,10 +13,9 @@ import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
 // TODO: things to support
 /**
  * lore/flavor text
- * deep parsing of BB/SBB/UBB
- * deep parsing of ES
+ * deep parsing of BB/SBB/UBB/LS/ES
+ * condition parsing of ES
  * evolution materials and cost
- * passing in of SP skills
  */
 
 /**
