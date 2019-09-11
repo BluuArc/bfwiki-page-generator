@@ -28,7 +28,7 @@ export default {
 			let name, children;
 			const value = obj[prop];
 			if (!value || typeof value !== 'object') {
-				name = `${prop}${value ? `: ${typeof 'value'}` : ''} = ${value}`;
+				name = `${prop}${value ? `: ${typeof value}` : ''} = ${value}`;
 			} else if (Array.isArray(value)) {
 				name = `${prop}: Array(${value.length})`;
 				children = [];

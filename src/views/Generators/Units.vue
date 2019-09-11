@@ -16,11 +16,12 @@ export default {
 	},
 	computed: {
 		expectedTables: () => [
-			// TODO: update with items when parsing ES is implemented?
+			// TODO: refactor into data mapping constant?
+			// TODO: update with items and uncomment when parsing ES is implemented?
 			DATA_MAPPING.units.key,
 			DATA_MAPPING.spEnhancements.key,
-			DATA_MAPPING.dictionary.key,
-			DATA_MAPPING.evolutionMaterials.key,
+			// DATA_MAPPING.dictionary.key,
+			// DATA_MAPPING.evolutionMaterials.key,
 		],
 	},
 };
