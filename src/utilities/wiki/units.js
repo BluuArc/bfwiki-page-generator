@@ -331,13 +331,22 @@ function generateMovementDataForNormalAttacks (unit) {
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateFlavorText (unit) {
-	// TODO: pull flavor text
-	return [
-		['|description', ''],
-		['|summon', ''],
-		['|fusion', ''],
-		['|evolution', ''],
-	];
+	const baseKey = `MST_UNITCOMMENT_${unit.id}_`;
+	const keys = ['description', 'summon', 'fusion', 'evolution'];
+	const dictionaryKeys = keys.reduce((acc, key) => {
+		acc[key] = `${baseKey}${key.toUpperCase()}`;
+		return acc;
+	}, {});
+	const dictionaryData = await bfDatabase.then(worker => worker.getByIds({
+		extractedFields: ['en'],
+		ids: Object.values(dictionaryKeys),
+		server: appLocalStorageStore.serverName,
+		table: DATA_MAPPING.dictionary.key,
+	}));
+	return keys.map(key => {
+		const dictionaryEntry = dictionaryData[dictionaryKeys[key]];
+		return [`|${key}`, (dictionaryEntry && dictionaryEntry.en) || ''];
+	});
 }
 
 /**
@@ -389,7 +398,7 @@ export async function generateUnitTemplate (unit) {
 		['|gender', (unit.gender || 'U')[0].toUpperCase()],
 		['|ai', ''],
 		...generateMovementData(unit),
-		...(await generateFlavorText()),
+		...(await generateFlavorText(unit)),
 		...generateStatData(unit),
 		['|lordonly', ''],
 		...(await generateEvolutionData(unit)),
