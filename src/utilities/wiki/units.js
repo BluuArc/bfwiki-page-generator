@@ -8,6 +8,8 @@ import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import { extractAttackingDamageFrames } from '@/utilities/bf-core/bursts';
 import { generateTemplateBody } from './utils';
+import { getEvolutions } from '@/utilities/bf-core/units';
+import { getNumberOrDefault } from '@/utilities/utils';
 import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
 
 // TODO: things to support
@@ -354,24 +356,30 @@ async function generateFlavorText (unit) {
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateEvolutionData (unit) {
-	// TODO: pull evolution data
-	return [
-		['|evofrom', ''],
-		['|evointo', ''],
-		['|evomats1', ''],
-		['|evomats2', ''],
-		['|evomats3', ''],
-		['|evomats4', ''],
-		['|evomats5', ''],
-		['|evomats6', ''],
-		['|evomats7', ''],
-		['|evomats8', ''],
-		['|evomats9', ''],
-		['|evoitem', ''],
-		['|evoitem2', ''],
-		['|evozelcost', ''],
-		['|evokarmacost', ''],
-	];
+	const evolutions = await getEvolutions(unit.id, (ids) => bfDatabase.then(worker => worker.getByIds({
+		ids,
+		server: appLocalStorageStore.serverName,
+		table: DATA_MAPPING.evolutionMaterials.key,
+	})));
+	const currentEntry = evolutions[unit.id];
+	const results = [];
+	if (currentEntry) {
+		results.push(
+			['|evofrom', currentEntry.prev || ''],
+			['|evointo', currentEntry.next || ''],
+		);
+		if (currentEntry.mats) {
+			const evoUnits = currentEntry.mats.filter(m => m.type === 'unit').map((entry, i) => [`|evomats${i !== 0 ? (i + 1) : ''}`, entry.id]);
+			const evoItems = currentEntry.mats.filter(m => m.type === 'item').map((entry, i) => [`|evoitem${i !== 0 ? (i + 1) : ''}`, entry.id]);
+			results.push(
+				['|evozelcost', getNumberOrDefault(currentEntry.amount)],
+				['|evokarmacost', ''],
+				...evoUnits,
+				...evoItems,
+			);
+		}
+	}
+	return results;
 }
 
 /**

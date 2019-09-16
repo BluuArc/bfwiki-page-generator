@@ -24,7 +24,7 @@ export class BfDatabase {
 	 * @param {object} arg0
 	 * @param {string?} arg0.server
 	 * @param {string} arg0.table
-	 * @returns {{ [key: string]: object }}
+	 * @returns {Promise<{ [key: string]: object }>}
 	 * @private
 	 */
 	async _getDatamineDb ({ server, table }) {

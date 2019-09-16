@@ -26,16 +26,57 @@ export function getImageUrls (id, baseContentUrl, suffix = '') {
 }
 
 /**
- * @param {number} category
- * @param {function(): Promise<object>} unitById
- * @returns {Promise<object>}
+ * @typedef {{ id: string, name: string, type: "unit"|"item" }} EvolutionEntry.mat
+ * @typedef {{ id: number, name: string, rarity: number }} EvolutionEntry.evo
+ * @typedef {{ amount: number, evo: EvolutionEntry.evo, mats: EvolutionEntry.mat[], name: string, rarity: 8, prev?: number, next?: number }} EvolutionEntry
  */
-export async function getHighestRarityUnit (category, unitById) {
-	for (let i = 9; i >= 0; --i) {
-		const id = `${+category + i}`;
-		const unit = await unitById(id);
-		if (unit) {
-			return unit;
+
+/**
+ * Get all the evolutions of a given unit ID
+ * @param {number} unitId
+ * @param {function(): Promise<{ [key: string]: EvolutionEntry }>} getUnitEvosById
+ * @returns {Promise<{ [key: string]: EvolutionEntry }>}
+ */
+export async function getEvolutions (unitId, getUnitEvosByIds) {
+	const parsedUnitId = +unitId;
+	const category = (parsedUnitId) - (parsedUnitId % 10);
+	const ids = new Array(10).fill(0).map((_, i) => `${category + i}`);
+	/**
+	 * @type {{ [key: string]: EvolutionEntry }}
+	*/
+	const data = await Promise.resolve(getUnitEvosByIds(ids));
+	const dataPairs = Object.entries(data).filter(p => p[1]);
+	let correspondingEntry = dataPairs.filter(p => (+p[0] === parsedUnitId))[0]; // attempt to find main entry
+	if (!correspondingEntry) {
+		// find corresponding evolved entry (case for when given final evolution)
+		correspondingEntry = dataPairs.filter(p => +p[1].evo.id === parsedUnitId)[0];
+	}
+
+	const result = {};
+	const addEntryToResult = (id, entry) => {
+		if (+id !== +entry.evo.id) {
+			const nextId = +entry.evo.id;
+			result[id] = { ...(result[id] || {}), ...entry, next: nextId };
+			result[nextId] = { ...(result[nextId] || {}), prev: +id };
+		}
+	};
+	if (correspondingEntry) {
+		const getPairThatEvolvesIntoId = (id) => dataPairs.filter(p => +p[1].evo.id === +id)[0];
+		const getEvoPairWithId = (id) => dataPairs.filter(p => +p[0] === +id)[0];
+		addEntryToResult(parsedUnitId, correspondingEntry[1]);
+		// find all units before this ID
+		let currentEntry = getPairThatEvolvesIntoId(parsedUnitId);
+		while (currentEntry) {
+			addEntryToResult(currentEntry[0], currentEntry[1]);
+			currentEntry = getPairThatEvolvesIntoId(currentEntry[0]);
+		}
+
+		// find all units after this ID
+		let nextEvoEntry = correspondingEntry.evo && getEvoPairWithId(correspondingEntry.evo.id);
+		while (nextEvoEntry) {
+			addEntryToResult(nextEvoEntry[0], nextEvoEntry[1]);
+			nextEvoEntry = nextEvoEntry[1].evo && getEvoPairWithId(nextEvoEntry[1].evo.id);
 		}
 	}
+	return result;
 }
