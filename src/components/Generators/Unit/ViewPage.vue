@@ -1,16 +1,29 @@
 <template>
 	<view-page-base
+		:key="entryId"
 		:dataArguments="dataArguments"
 		:getData="getData"
 		:generateWikiTemplate="getWikiTemplate"
 		:tabConfig="tabConfig"
 	>
-		<span slot="assets">Assets page coming soon!</span>
+		<span slot="sp-builder">
+			<promise-wait :promise="unitDataPromise" loadingMessage="Loading unit data...">
+				<template v-slot="{ result }">
+					<span v-if="result && result.rarity === 8">
+						SP Builder coming soon!
+					</span>
+					<span v-else>
+						This unit does not have any SP Enhancements
+					</span>
+				</template>
+			</promise-wait>
+		</span>
 	</view-page-base>
 </template>
 
 <script>
 import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
+import PromiseWait from '@/components/utilities/PromiseWait';
 import ViewPageBase from '@/components/Generators/ViewPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -23,6 +36,7 @@ export default {
 		this.$store.commit('setTitleOverride', '');
 	},
 	components: {
+		PromiseWait,
 		ViewPageBase,
 	},
 	computed: {
@@ -33,7 +47,7 @@ export default {
 			return this.$route.params.id;
 		},
 		tabConfig () {
-			return [DEFAULT_TAB_NAMES.WIKI_TEMPLATE, DEFAULT_TAB_NAMES.JSON_EXPLORER, 'Assets'];
+			return [DEFAULT_TAB_NAMES.WIKI_TEMPLATE, DEFAULT_TAB_NAMES.JSON_EXPLORER, 'SP Builder'];
 		},
 	},
 	created () {
@@ -41,12 +55,13 @@ export default {
 	},
 	data () {
 		return {
+			unitDataPromise: () => Promise.resolve(null),
 			wikiTemplate: 'Loading template...',
 		};
 	},
 	methods: {
 		getData () {
-			return bfDatabase
+			this.unitDataPromise = bfDatabase
 				.then(worker => worker.getById({
 					id: this.entryId,
 					server: appLocalStorageStore.serverName,
@@ -55,10 +70,12 @@ export default {
 				.then(unitData => {
 					logger.debug({ unitData });
 					if (unitData) {
+						this.unitData = unitData;
 						this.$store.commit('setTitleOverride', `Unit Generator - ${unitData.name}`);
 					}
 					return unitData;
 				});
+			return this.unitDataPromise;
 		},
 		getWikiTemplate (unitData) {
 			logger.debug('in getWikiTemplate');

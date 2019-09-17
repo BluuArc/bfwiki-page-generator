@@ -61,6 +61,16 @@ export const DATA_MAPPING = Object.freeze({
 	},
 });
 
+export const EXPECTED_TABLE_MAPPING = Object.freeze({
+	[DATA_MAPPING.units.key]: [
+		// TODO: update with items and uncomment when parsing ES is implemented
+		DATA_MAPPING.units.key,
+		DATA_MAPPING.spEnhancements.key,
+		DATA_MAPPING.dictionary.key,
+		DATA_MAPPING.evolutionMaterials.key,
+	],
+});
+
 export const SETTING_KEYS = Object.freeze({
 	BASE_CONTENT_URL: 'url-',
 	DEBUG_MODE: 'debugMode',

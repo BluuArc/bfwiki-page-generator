@@ -14,10 +14,8 @@ import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
 
 // TODO: things to support
 /**
- * lore/flavor text
  * deep parsing of BB/SBB/UBB/LS/ES
  * condition parsing of ES
- * evolution materials and cost
  */
 
 /**
@@ -272,7 +270,6 @@ function generateEsData (unit) {
 		desc: unit['extra skill'] && unit['extra skill'].desc,
 		name: unit['extra skill'] && unit['extra skill'].name,
 	};
-	// TODO: condition parsing
 	return [
 		['|es', esData.name || ''],
 		['|esdescription', esData.desc || ''],

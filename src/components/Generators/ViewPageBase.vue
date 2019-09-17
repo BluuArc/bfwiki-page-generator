@@ -15,7 +15,7 @@
 				<v-tab v-for="(tab, i) in tabConfig" :key="i">
 					{{ tab }}
 				</v-tab>
-				<v-tabs-items touchless v-model="activeTab">
+				<v-tabs-items touchless v-model="activeTab" style="overflow-x: auto;">
 					<v-tab-item
 						v-for="(name, i) in tabSlotNames"
 						:key="name"
