@@ -71,7 +71,7 @@ export default {
 				{
 					children: Object.keys(this.json || {}).map(k => this.generateTreeNodeForEntry(k, this.json)),
 					id: -1,
-					name: `root: ${Array.isArray(this.json) ? `Array(${this.json.length})` : typeof this.json}`,
+					name: `${this.rootName}: ${Array.isArray(this.json) ? `Array(${this.json.length})` : typeof this.json}`,
 				},
 			];
 		},
@@ -79,6 +79,10 @@ export default {
 	props: {
 		json: {
 			required: true,
+		},
+		rootName: {
+			default: 'root',
+			type: String,
 		},
 	},
 	watch: {
