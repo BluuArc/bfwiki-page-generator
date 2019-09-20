@@ -13,7 +13,10 @@
 				hide-details
 			/>
 			<span class="sp-builder--category-icon">
-				{{ entry.category }}
+				<sp-icon
+					:category="+entry.category"
+					:displaySize="24"
+				/>
 			</span>
 			<span class="sp-builder--description">
 				{{ entry.skill.desc }}
@@ -32,10 +35,12 @@
 
 <script>
 import JsonExplorerView from '@/components/Generators/JsonExplorerView';
+import SpIcon from '@/components/BF/Units/SpIcon';
 
 export default {
 	components: {
 		JsonExplorerView,
+		SpIcon,
 	},
 	data () {
 		return {
@@ -73,13 +78,14 @@ ul.sp-builder {
 	@include list-style-reset();
 
 	.sp-builder--entry {
+		margin: 0.5em 0;
 		display: grid;
 		grid-template-columns: auto auto auto 1fr;
 		grid-template-rows: auto auto auto auto;
 		grid-template-areas:	"div div div div"
 													"expand checkbox category-icon desc"
 													"json json json json";
-		align-items: baseline;
+		align-items: center;
 		grid-column-gap: 1em;
 
 		&[data-index="0"] {
@@ -103,6 +109,7 @@ ul.sp-builder {
 
 		.sp-builder--checkbox {
 			grid-area: checkbox;
+			margin: auto;
 
 			.v-input--selection-controls__input {
 				margin: auto;
@@ -111,6 +118,7 @@ ul.sp-builder {
 
 		.sp-builder--category-icon {
 			grid-area: category-icon;
+			height: 24px;
 		}
 
 		.sp-builder--description {
