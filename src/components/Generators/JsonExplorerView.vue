@@ -1,6 +1,6 @@
 <template>
 	<v-treeview
-		activatable
+		class="json-treeview"
 		:items="treeData"
 		:load-children="loadChildrenForEntry"
 		open-on-click
@@ -11,6 +11,7 @@
 import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('JsonExplorerView');
+const FALSY_TYPES_TO_DISPLAY = ['number', 'string', 'boolean'];
 export default {
 	data () {
 		return {
@@ -27,8 +28,14 @@ export default {
 		generateTreeNodeForEntry (prop, obj, currentPath = '') {
 			let name, children;
 			const value = obj[prop];
-			if (!value || typeof value !== 'object') {
-				name = `${prop}${value ? `: ${typeof value}` : ''} = ${value}`;
+			const valueType = typeof value;
+			if (!value || valueType !== 'object') {
+				const valueTypeToDisplay = value || FALSY_TYPES_TO_DISPLAY.includes(valueType) ? `: ${valueType}` : '';
+				let valueToDisplay = value;
+				if (!value && valueType === 'string') {
+					valueToDisplay = '(Empty String)';
+				}
+				name = `${prop}${valueTypeToDisplay} = ${valueToDisplay}`;
 			} else if (Array.isArray(value)) {
 				name = `${prop}: Array(${value.length})`;
 				children = [];
@@ -67,13 +74,24 @@ export default {
 			return Promise.resolve();
 		},
 		resetTreeData () {
-			this.treeData = [
-				{
-					children: Object.keys(this.json || {}).map(k => this.generateTreeNodeForEntry(k, this.json)),
-					id: -1,
-					name: `${this.rootName}: ${Array.isArray(this.json) ? `Array(${this.json.length})` : typeof this.json}`,
-				},
-			];
+			const transformedKeys = Object.keys(this.json || {}).sort().map(k => this.generateTreeNodeForEntry(k, this.json));
+			if (this.useRootNode) {
+				this.treeData = [
+					{
+						children: transformedKeys,
+						id: -1,
+						name: `${this.rootName}: ${Array.isArray(this.json) ? `Array(${this.json.length})` : typeof this.json}`,
+					},
+				];
+			} else {
+				this.treeData = transformedKeys.length > 0
+					? transformedKeys
+					: [{
+						children: [],
+						id: -1,
+						name: `${this.rootName}: No properties found`,
+					}];
+			}
 		},
 	},
 	props: {
@@ -83,6 +101,10 @@ export default {
 		rootName: {
 			default: 'root',
 			type: String,
+		},
+		useRootNode: {
+			default: false,
+			type: Boolean,
 		},
 	},
 	watch: {
@@ -97,3 +119,11 @@ export default {
 	},
 };
 </script>
+
+<style lang="scss">
+.json-treeview {
+	.v-treeview-node__label {
+		white-space: normal;
+	}
+}
+</style>

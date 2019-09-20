@@ -1,7 +1,8 @@
 <template>
 	<ul class="sp-builder">
-		<li v-for="(entry, i) in spEntries" :key="entry.id" class="sp-builder--entry">
-			<v-btn icon class="sp-builder--expansion-icon">
+		<li v-for="(entry, i) in spEntries" :key="entry.id" class="sp-builder--entry" :data-index="i">
+			<v-divider v-if="i > 0" class="sp-builder--divider"/>
+			<v-btn icon class="sp-builder--expansion-icon" @click="toggleJsonIndex(i)" :data-expand="visibleJsonIndices[i]">
 				<v-icon>fas fa-chevron-right</v-icon>
 			</v-btn>
 			<v-checkbox
@@ -17,11 +18,14 @@
 			<span class="sp-builder--description">
 				{{ entry.skill.desc }}
 			</span>
-			<json-explorer-view
-				class="sp-builder--json"
-				:json="entry"
-				rootName="SP Entry"
-			/>
+			<v-expand-transition>
+				<json-explorer-view
+					v-show="visibleJsonIndices[i]"
+					class="sp-builder--json"
+					:json="entry"
+					rootName="SP Entry"
+				/>
+			</v-expand-transition>
 		</li>
 	</ul>
 </template>
@@ -36,7 +40,13 @@ export default {
 	data () {
 		return {
 			selectedEntries: [],
+			visibleJsonIndices: {},
 		};
+	},
+	methods: {
+		toggleJsonIndex (index) {
+			this.$set(this.visibleJsonIndices, index, !this.visibleJsonIndices[index]);
+		},
 	},
 	props: {
 		spEntries: {
@@ -46,6 +56,11 @@ export default {
 		value: {
 			default: '',
 			type: String,
+		},
+	},
+	watch: {
+		spEntries () {
+			this.visibleJsonIndices = {};
 		},
 	},
 };
@@ -59,19 +74,39 @@ ul.sp-builder {
 
 	.sp-builder--entry {
 		display: grid;
-		grid-template-rows: auto auto;
 		grid-template-columns: auto auto auto 1fr;
-		grid-template-areas:	"expand checkbox category-icon desc"
+		grid-template-rows: auto auto auto auto;
+		grid-template-areas:	"div div div div"
+													"expand checkbox category-icon desc"
 													"json json json json";
 		align-items: baseline;
-		grid-column-gap: 0.25em;
+		grid-column-gap: 1em;
+
+		&[data-index="0"] {
+			// 0th index does not have a divideer
+			grid-template-rows: auto auto auto;
+			grid-template-areas:	"expand checkbox category-icon desc"
+														"json json json json";
+		}
+
+		.sp-builder--divider {
+			grid-area: div;
+		}
 
 		.sp-builder--expansion-icon {
 			grid-area: expand;
+
+			&[data-expand=true] {
+				transform: rotate(90deg);
+			}
 		}
 
 		.sp-builder--checkbox {
 			grid-area: checkbox;
+
+			.v-input--selection-controls__input {
+				margin: auto;
+			}
 		}
 
 		.sp-builder--category-icon {
