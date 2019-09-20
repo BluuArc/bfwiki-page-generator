@@ -9,9 +9,10 @@
 		<span slot="sp-builder">
 			<promise-wait :promise="unitDataPromise" loadingMessage="Loading unit data...">
 				<template v-slot="{ result }">
-					<span v-if="result && result.rarity === 8">
-						SP Builder coming soon!
-					</span>
+					<sp-build-view
+						v-if="result && result.rarity === 8"
+						:unitId="entryId"
+					/>
 					<span v-else>
 						This unit does not have any SP Enhancements
 					</span>
@@ -24,6 +25,7 @@
 <script>
 import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
 import PromiseWait from '@/components/utilities/PromiseWait';
+import SpBuildView from './SpBuildView';
 import ViewPageBase from '@/components/Generators/ViewPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -37,6 +39,7 @@ export default {
 	},
 	components: {
 		PromiseWait,
+		SpBuildView,
 		ViewPageBase,
 	},
 	computed: {

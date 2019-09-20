@@ -12,3 +12,10 @@ export function getRandomToken () {
 export function getNumberOrDefault (value, defaultValue = 0) {
 	return !isNaN(value) ? +value : defaultValue;
 }
+
+/**
+ * @param {string} input
+ */
+export function toKebabCase (input) {
+	return input.toLowerCase().replace(/ /g, '-');
+}

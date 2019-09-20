@@ -81,9 +81,10 @@ export default {
 </script>
 
 <style lang="scss">
+@import "@/styles/util-mixins.scss";
+
 ul.unit-results-list {
-	list-style-type: none;
-	padding-left: 0;
+	@include list-style-reset();
 
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(350px, auto));

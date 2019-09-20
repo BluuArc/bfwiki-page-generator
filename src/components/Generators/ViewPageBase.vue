@@ -50,6 +50,7 @@ import JsonExplorerView from './JsonExplorerView';
 import ProgressViewer from '@/components/utilities/ProgressViewer';
 import { VProgressLinear } from 'vuetify/lib';
 import WikiTemplateViewer from './WikiTemplateViewer';
+import { toKebabCase } from '@/utilities/utils';
 
 export default {
 	components: {
@@ -66,8 +67,7 @@ export default {
 			return this.tabConfig.indexOf(DEFAULT_TAB_NAMES.WIKI_TEMPLATE);
 		},
 		tabSlotNames () {
-			const spaceRegex = / /g;
-			return this.tabConfig.map(name => name.toLowerCase().replace(spaceRegex, '-'));
+			return this.tabConfig.map(toKebabCase);
 		},
 	},
 	created () {
