@@ -1,16 +1,30 @@
 <template>
 	<ul class="sp-builder">
-		<li v-for="(entry, i) in spEntries" :key="entry.id" class="sp-builder--entry" :data-index="i">
-			<v-divider v-if="i > 0" class="sp-builder--divider"/>
-			<v-btn icon class="sp-builder--expansion-icon" @click="toggleJsonIndex(i)" :data-expand="visibleJsonIndices[i]">
-				<v-icon>fas fa-chevron-right</v-icon>
-			</v-btn>
+		<li class="sp-builder--header sp-builder--entry">
 			<v-checkbox
-				class="sp-builder--checkbox"
+				class="sp-builder--checkbox pl-2"
+				v-model="selectedEntries"
+				:value="-1"
+				multiple
+				hide-details
+				label="MMM SP"
+			/>
+			<v-label class="sp-builder--category-icon text-center">
+				Type
+			</v-label>
+			<v-label class="sp-builder--description">
+				Description
+			</v-label>
+		</li>
+		<li v-for="(entry, i) in spEntries" :key="entry.id" class="sp-builder--entry">
+			<v-divider class="sp-builder--divider"/>
+			<v-checkbox
+				class="sp-builder--checkbox pl-2"
 				v-model="selectedEntries"
 				:value="i"
 				multiple
 				hide-details
+				label="MMM SP"
 			/>
 			<span class="sp-builder--category-icon">
 				<sp-icon
@@ -21,6 +35,9 @@
 			<span class="sp-builder--description">
 				{{ entry.skill.desc }}
 			</span>
+			<v-btn icon class="sp-builder--expansion-icon" @click="toggleJsonIndex(i)" :data-expand="visibleJsonIndices[i]">
+				<v-icon>fas fa-chevron-down</v-icon>
+			</v-btn>
 			<v-expand-transition>
 				<json-explorer-view
 					v-show="visibleJsonIndices[i]"
@@ -80,18 +97,18 @@ ul.sp-builder {
 	.sp-builder--entry {
 		margin: 0.5em 0;
 		display: grid;
-		grid-template-columns: auto auto auto 1fr;
+		grid-template-columns: 100px 40px 1fr 44px;
 		grid-template-rows: auto auto auto auto;
 		grid-template-areas:	"div div div div"
-													"expand checkbox category-icon desc"
+													"checkbox category-icon desc expand"
 													"json json json json";
 		align-items: center;
 		grid-column-gap: 1em;
 
-		&[data-index="0"] {
-			// 0th index does not have a divideer
+		&.sp-builder--header {
+			// header does not have a divideer
 			grid-template-rows: auto auto auto;
-			grid-template-areas:	"expand checkbox category-icon desc"
+			grid-template-areas:	"checkbox category-icon desc expand"
 														"json json json json";
 		}
 
@@ -103,7 +120,7 @@ ul.sp-builder {
 			grid-area: expand;
 
 			&[data-expand=true] {
-				transform: rotate(90deg);
+				transform: rotate(180deg);
 			}
 		}
 
@@ -119,6 +136,7 @@ ul.sp-builder {
 		.sp-builder--category-icon {
 			grid-area: category-icon;
 			height: 24px;
+			justify-self: center;
 		}
 
 		.sp-builder--description {
