@@ -12,6 +12,7 @@
 					<sp-build-view
 						v-if="result && result.rarity === 8"
 						:unitId="entryId"
+						:unitData="result"
 					/>
 					<span v-else>
 						This unit does not have any SP Enhancements

@@ -4,8 +4,10 @@ import {
 	SP_CATEGORY_MAPPING,
 } from '@/utilities/bf-core/constants';
 import {
+	getSpCost,
 	getSpDependencyText,
 	getSpDescription,
+	spCodeToIndex,
 } from '@/utilities/bf-core/spEnhancements';
 import { DATA_MAPPING } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
@@ -430,6 +432,36 @@ export async function generateUnitTemplate (unit) {
 		['|addcatname', ''],
 	];
 	return `{{{{#if:{{{1|}}}|UnitProp|Unit}}|prop={{{1|}}}
+${generateTemplateBody(templateData)}
+}}`;
+}
+
+/**
+ * @param {string} code
+ * @param {import('../bf-core/spEnhancements').SpEntry[]} spEntries
+ * @param {object} unit
+ */
+export function generateSpTemplate (code, spEntries, unit) {
+	const spWikiEntries = code.split('').reduce((acc, entryCode, i) => {
+		const entry = spEntries[spCodeToIndex(entryCode)];
+		const wikiIndex = i + 1;
+		acc.push(
+			[`|sp_cost_${wikiIndex}`, getSpCost(spEntries, entryCode)],
+			[`|spskill_${wikiIndex}`, getSpDescription(entry)],
+		);
+		return acc;
+	}, []);
+	const templateData = [
+		['|build_name', `${unit.name} build`],
+		['|element', ELEMENT_NAME_MAPPING[unit.element]],
+		['|total_sp', getSpCost(spEntries, code)],
+		['|author', ''],
+		...spWikiEntries,
+		['|analysis', ''],
+		['|last_updated', new Date().toDateString()],
+	];
+
+	return `{{Build
 ${generateTemplateBody(templateData)}
 }}`;
 }

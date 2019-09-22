@@ -8,30 +8,48 @@
 						:spEntries="result"
 					/>
 				</div>
-				<div>
-					accept buttons here
-				</div>
+				<v-layout justify-space-between class="pa-2">
+					<copy-button
+						:disabled="!currentSpCode"
+						buttonText="Copy"
+						buttonTextCopied="Build Copied!"
+						:key="spTemplate"
+						:value="spTemplate"
+					>
+						Copy
+					</copy-button>
+					<v-btn text @click="currentSpCode = ''">Clear</v-btn>
+				</v-layout>
 			</section>
 		</template>
 	</promise-wait>
 </template>
 
 <script>
+import CopyButton from '@/components/utilities/CopyButton';
 import { DATA_MAPPING } from '@/utilities/constants';
 import PromiseWait from '@/components/utilities/PromiseWait';
 import SpBuilder from '@/components/BF/Units/SpBuilder';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
+import { generateSpTemplate } from '@/utilities/wiki/units';
 
 export default {
 	components: {
+		CopyButton,
 		PromiseWait,
 		SpBuilder,
+	},
+	computed: {
+		spTemplate () {
+			return generateSpTemplate(this.currentSpCode, this.spEntries, this.unitData);
+		},
 	},
 	data () {
 		return {
 			allEnhancementsPromise: Promise.resolve([]),
 			currentSpCode: '',
+			spEntries: [],
 		};
 	},
 	methods: {
@@ -40,10 +58,18 @@ export default {
 				id: entryId,
 				server: appLocalStorageStore.serverName,
 				table: DATA_MAPPING.spEnhancements.key,
-			})).then((result = {}) => Array.isArray(result.skills) ? result.skills : []);
+			})).then((result = {}) => {
+				const spEntries = Array.isArray(result.skills) ? result.skills : [];
+				this.spEntries = spEntries;
+				return spEntries;
+			});
 		},
 	},
 	props: {
+		unitData: {
+			default: () => ({}),
+			type: Object,
+		},
 		unitId: {
 			required: true,
 		},
