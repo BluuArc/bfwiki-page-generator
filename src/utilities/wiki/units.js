@@ -3,6 +3,10 @@ import {
 	MAX_LEVEL_MAPPING,
 	SP_CATEGORY_MAPPING,
 } from '@/utilities/bf-core/constants';
+import {
+	getSpDependencyText,
+	getSpDescription,
+} from '@/utilities/bf-core/spEnhancements';
 import { DATA_MAPPING } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -10,7 +14,6 @@ import { extractAttackingDamageFrames } from '@/utilities/bf-core/bursts';
 import { generateTemplateBody } from './utils';
 import { getEvolutions } from '@/utilities/bf-core/units';
 import { getNumberOrDefault } from '@/utilities/utils';
-import { getSpDescription } from '@/utilities/bf-core/spEnhancements';
 
 // TODO: things to support
 /**
@@ -176,9 +179,11 @@ async function generateSpData (unit) {
 				result.push([`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]]);
 				entries.forEach((feskillEntry, i) => {
 					const baseSkillKey = `${baseKey}${i + 1}_`;
+					const hasDependency = !!feskillEntry.dependency;
 					result.push(
-						[`${baseSkillKey}sp`, feskillEntry.skill.bp],
+						[`${baseSkillKey}sp`, `${feskillEntry.skill.bp}${hasDependency ? ' {{L}}' : ''}`],
 						[`${baseSkillKey}desc`, getSpDescription(feskillEntry)],
+						[`${baseSkillKey}note`, hasDependency ? getSpDependencyText(feskillEntry, spData.skills) : ''],
 					);
 				});
 			});
@@ -266,16 +271,20 @@ function generateLsData (unit) {
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateEsData (unit) {
-	const esData = {
-		desc: unit['extra skill'] && unit['extra skill'].desc,
-		name: unit['extra skill'] && unit['extra skill'].name,
-	};
-	return [
-		['|es', esData.name || ''],
-		['|esdescription', esData.desc || ''],
-		['|esitem', ''],
-		['|esnote', ''],
-	];
+	const results = [];
+	if (unit['extra skill']) {
+		const esData = {
+			desc: unit['extra skill'].desc,
+			name: unit['extra skill'].name,
+		};
+		results.push(
+			['|es', esData.name || ''],
+			['|esdescription', esData.desc || ''],
+			['|esitem', ''],
+			['|esnote', ''],
+		);
+	}
+	return results;
 }
 
 /**
@@ -411,8 +420,8 @@ export async function generateUnitTemplate (unit) {
 		...generateLsData(unit),
 		...generateEsData(unit),
 		...generateBurstDataForBurstType('bb', unit),
-		...generateBurstDataForBurstType('sbb', unit),
-		...generateBurstDataForBurstType('ubb', unit),
+		...(unit.sbb ? generateBurstDataForBurstType('sbb', unit) : []),
+		...(unit.ubb ? generateBurstDataForBurstType('ubb', unit) : []),
 		...(await generateSpData(unit)),
 		['|howtoget', ''],
 		['|notes', ''],
