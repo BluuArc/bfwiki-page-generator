@@ -4,6 +4,10 @@ import {
 	SP_CATEGORY_MAPPING,
 } from '@/utilities/bf-core/constants';
 import {
+	extractAttackingDamageFrames,
+	getBurstLevelEntry,
+} from '@/utilities/bf-core/bursts';
+import {
 	getSpCost,
 	getSpDependencyText,
 	getSpDescription,
@@ -12,7 +16,6 @@ import {
 import { DATA_MAPPING } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
-import { extractAttackingDamageFrames } from '@/utilities/bf-core/bursts';
 import { generateTemplateBody } from './utils';
 import { getEvolutions } from '@/utilities/bf-core/units';
 import { getNumberOrDefault } from '@/utilities/utils';
@@ -24,8 +27,17 @@ import { getNumberOrDefault } from '@/utilities/utils';
  */
 
 /**
-* @typedef {{ distribute: string, effectdelay: string, frames: string, hits: number, totaldistr: number }} WikiDamageFramesEntry
-*/
+ * @typedef WikiDamageFramesEntry
+ * @property {string} WikiDamageFramesEntry.distribute
+ * @property {string} WikiDamageFramesEntry.effectdelay
+ * @property {string} WikiDamageFramesEntry.frames
+ * @property {number} WikiDamageFramesEntry.hits
+ * @property {number} WikiDamageFramesEntry.totaldistr
+ * @property {number} WikiDamageFramesEntry.frameIndex
+ * @property {'A' | '1'} WikiDamageFramesEntry.target
+ * @property {number} WikiDamageFramesEntry.multiplier
+ * @property {boolean} WikiDamageFramesEntry.hpScaled
+ */
 
 /**
  * @param {string} prop
@@ -64,12 +76,14 @@ function getDamageFrames (damageFramesEntry) {
 	const result = {
 		distribute: '',
 		effectdelay: '',
+		frameIndex: -1,
 		frames: '',
 		hits: 0,
 		totaldistr: '',
 	};
 	if (damageFramesEntry) {
 		result.distribute = Array.from(damageFramesEntry['hit dmg% distribution']).join(', ');
+		result.frameIndex = damageFramesEntry.frameIndex;
 		result.frames = Array.from(damageFramesEntry['frame times']).join(', ');
 		result.totaldistr = damageFramesEntry['hit dmg% distribution (total)'];
 		result.hits = damageFramesEntry.hits;
@@ -91,8 +105,19 @@ function getBurstFrameData (burstProp, unit) {
 	 */
 	let result = [];
 	if (unit[burstProp] && unit[burstProp]['damage frames']) {
+		const lastLevel = getBurstLevelEntry(unit[burstProp]);
 		const attackingFrames = extractAttackingDamageFrames(unit[burstProp]['damage frames']);
-		result = attackingFrames.map(getDamageFrames);
+		result = attackingFrames.map(getDamageFrames)
+			.map(frame => {
+				const correspondingEffect = lastLevel.effects[frame.frameIndex];
+				frame.target = (correspondingEffect['target area'] === 'aoe' && !correspondingEffect['random attack']) ? 'A' : '1';
+				if (!isNaN(correspondingEffect.hits)) {
+					frame.hits = +correspondingEffect.hits;
+				}
+				frame.multiplier = correspondingEffect['bb atk%'] || correspondingEffect['bb base atk%'];
+				frame.hpScaled = correspondingEffect.hasOwnProperty('bb added atk% based on hp');
+				return frame;
+			});
 	}
 	return result;
 }
@@ -324,10 +349,10 @@ function generateBurstDataForBurstType (type, unit) {
 			[`${baseAttackKey}_totaldistr`, attack.totaldistr],
 			[`${baseAttackKey}_effectdelay`, attack.effectdelay],
 			[`${baseKey}hits${attackIndexKey}`, attack.hits],
-			[`${baseKey}aoe${attackIndexKey}`, ''],
+			[`${baseKey}aoe${attackIndexKey}`, attack.target],
 			[`${baseKey}dc${attackIndexKey}`, (+burstInfo.dc) * attack.hits],
-			[`${baseKey}multiplier${attackIndexKey}`, ''],
-			[`${baseKey}_hpscale${attackIndexKey}`, ''],
+			[`${baseKey}multiplier${attackIndexKey}`, attack.multiplier || ''],
+			[`${baseAttackKey}_hpscale`, attack.hpScaled || ''],
 		);
 	});
 	return result;

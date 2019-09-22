@@ -6,10 +6,12 @@ const ATTACKING_PROCS = Object.keys(PROC_PASSIVE_METADATA.proc).filter(id => PRO
  * @returns {Array<object>}
  */
 export function extractAttackingDamageFrames (damageFrames) {
-	return damageFrames.filter(frame => {
-		const procId = !isNaN(frame['proc id']) ? frame['proc id'] : frame['unknown proc id'];
-		return ATTACKING_PROCS.includes(procId);
-	});
+	return damageFrames
+		.map((frame, i) => ({ ...frame, frameIndex: i }))
+		.filter(frame => {
+			const procId = !isNaN(frame['proc id']) ? frame['proc id'] : frame['unknown proc id'];
+			return ATTACKING_PROCS.includes(procId);
+		});
 }
 
 /**
