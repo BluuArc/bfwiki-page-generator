@@ -20,7 +20,7 @@ const pageGeneratorRoutes = [
 		listConfig: {
 			hidden: true,
 		},
-		name: 'Unit Generator - ',
+		name: 'Unit Generator - Loading...',
 		path: '/generators/units/:id',
 	},
 ];
