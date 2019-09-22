@@ -133,7 +133,7 @@ function getStatEntriesForType (type, unit) {
 /**
  * @param {string} type
  * @param {object} unit
- * @returns {{ dc: number, desc: string, gauge: number, name: string, attacks: WikiDamageFramesEntry[] }}
+ * @returns {{ dc: number, desc: string, gauge: number, name: string, attacks: WikiDamageFramesEntry[], type: "Offense"|"Heal"|"Support" }}
  */
 function getBurstInfo (type, unit) {
 	const result = {
@@ -142,6 +142,7 @@ function getBurstInfo (type, unit) {
 		desc: '',
 		gauge: '',
 		name: '',
+		type: '',
 	};
 	if (unit[type]) {
 		const burstEntry = unit[type];
@@ -150,6 +151,16 @@ function getBurstInfo (type, unit) {
 		result.desc = burstEntry.desc;
 		result.dc = burstEntry['drop check count'];
 		result.gauge = burstEntry.levels[burstEntry.levels.length - 1]['bc cost'];
+
+		if (result.attacks.length > 0) {
+			result.type = 'Offense';
+		} else {
+			/**
+			 * @type {string[]}
+			 */
+			const presentProcs = unit[type]['damage frames'].map(frame => !isNaN(frame['proc id']) ? frame['proc id'] : frame['unknown proc id']);
+			result.type = presentProcs.some(id => +id === 2 || +id === 3) ? 'Heal' : 'Support';
+		}
 	}
 	return result;
 }
@@ -185,7 +196,7 @@ async function generateSpData (unit) {
 					result.push(
 						[`${baseSkillKey}sp`, `${feskillEntry.skill.bp}${hasDependency ? ' {{L}}' : ''}`],
 						[`${baseSkillKey}desc`, getSpDescription(feskillEntry)],
-						[`${baseSkillKey}note`, hasDependency ? getSpDependencyText(feskillEntry, spData.skills) : ''],
+						[`${baseSkillKey}note`, hasDependency ? `(${getSpDependencyText(feskillEntry, spData.skills)})` : ''],
 					);
 				});
 			});
@@ -301,21 +312,22 @@ function generateBurstDataForBurstType (type, unit) {
 		[`${baseKey}`, burstInfo.name],
 		[`${baseKey}description`, burstInfo.desc],
 		[`${baseKey}note`, ''],
-		[`${baseKey}type`, ''],
+		[`${baseKey}type`, burstInfo.type],
 		[`${baseKey}gauge`, burstInfo.gauge],
 	];
 	burstInfo.attacks.forEach((attack, index) => {
-		const baseAttackKey = `${baseKey}${index > 0 ? (index + 1) : ''}`;
+		const attackIndexKey = `${index > 0 ? (index + 1) : ''}`;
+		const baseAttackKey = `${baseKey}${attackIndexKey}`;
 		result.push(
 			[`${baseAttackKey}_frames`, attack.frames],
 			[`${baseAttackKey}_distribute`, attack.distribute],
 			[`${baseAttackKey}_totaldistr`, attack.totaldistr],
 			[`${baseAttackKey}_effectdelay`, attack.effectdelay],
-			[`${baseAttackKey}hits`, attack.hits],
-			[`${baseAttackKey}aoe`, ''],
-			[`${baseAttackKey}dc`, (+burstInfo.dc) * attack.hits],
-			[`${baseAttackKey}multiplier`, ''],
-			[`${baseAttackKey}_hpscale`, ''],
+			[`${baseKey}hits${attackIndexKey}`, attack.hits],
+			[`${baseKey}aoe${attackIndexKey}`, ''],
+			[`${baseKey}dc${attackIndexKey}`, (+burstInfo.dc) * attack.hits],
+			[`${baseKey}multiplier${attackIndexKey}`, ''],
+			[`${baseKey}_hpscale${attackIndexKey}`, ''],
 		);
 	});
 	return result;

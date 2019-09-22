@@ -64,7 +64,7 @@ export function getSpDependencyText (spEntry = {}, allEntries = []) {
 	const dependentSpEntry = spEntry.dependency && getSpEntryWithId(spEntry.dependency, allEntries);
 
 	return dependentSpEntry
-		? `Requires ${getSpDescription(dependentSpEntry)} to be unlocked`
+		? `Prerequisite: Unlock "${getSpDescription(dependentSpEntry)}"`
 		: (spEntry['dependency comment'] || 'Requires another enhancement');
 }
 
