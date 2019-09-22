@@ -103,3 +103,18 @@ export function getAllEntriesThatDependOnSpEntry (spEntry = {}, allEntries = [])
 		.reduce((acc, val) => acc.concat(val), []);
 	return Array.from(new Set(dependents.concat(subDependents)));
 }
+
+/**
+ * @param {Array<SpEntry>} allEntries
+ * @param {string} code
+ */
+export function getSpCost (allEntries, code = '') {
+	const isValidFeSKills = Array.isArray(allEntries) && allEntries.length > 0;
+	if (!isValidFeSKills || !code) {
+		return 0;
+	}
+	return code.split('')
+		.map(char => allEntries[spCodeToIndex(char)])
+		.filter(v => v)
+		.reduce((acc, s) => acc + +s.skill.bp, 0);
+}
