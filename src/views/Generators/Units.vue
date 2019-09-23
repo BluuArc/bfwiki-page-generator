@@ -6,7 +6,7 @@
 
 <script>
 import { DATA_MAPPING, EXPECTED_TABLE_MAPPING } from '@/utilities/constants';
-import SearchPage from '@/components/Generators/Unit/SearchPage';
+import SearchPage from '@/components/Generators/Units/SearchPage';
 import TableChecker from '@/components/utilities/TableChecker';
 
 export default {

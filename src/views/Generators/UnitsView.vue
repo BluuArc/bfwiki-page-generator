@@ -7,7 +7,7 @@
 <script>
 import { DATA_MAPPING, EXPECTED_TABLE_MAPPING } from '@/utilities/constants';
 import TableChecker from '@/components/utilities/TableChecker';
-import ViewPage from '@/components/Generators/Unit/ViewPage';
+import ViewPage from '@/components/Generators/Units/ViewPage';
 export default {
 	components: {
 		TableChecker,
