@@ -62,6 +62,10 @@ export const DATA_MAPPING = Object.freeze({
 });
 
 export const EXPECTED_TABLE_MAPPING = Object.freeze({
+	[DATA_MAPPING.items.key]: [
+		DATA_MAPPING.items.key,
+		DATA_MAPPING.dictionary.key,
+	],
 	[DATA_MAPPING.units.key]: [
 		// TODO: update with items and uncomment when parsing ES is implemented
 		DATA_MAPPING.units.key,
@@ -79,8 +83,6 @@ export const SETTING_KEYS = Object.freeze({
 });
 
 export const BASE_DATAMINE_URL = 'https://raw.githubusercontent.com/cheahjs/bravefrontier_data/master';
-
-export const ELEMENTS = Object.freeze(['fire', 'water', 'earth', 'thunder', 'light', 'dark']);
 
 export const DEFAULT_CONTENT_URLS = Object.freeze({
 	EU: 'http://static-bravefrontier.gumi-europe.net/content',

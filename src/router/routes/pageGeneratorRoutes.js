@@ -23,6 +23,14 @@ const pageGeneratorRoutes = [
 		name: 'Unit Generator - Loading...',
 		path: '/generators/units/:id',
 	},
+	{
+		component: () => import(/* webpackChunkName: "generators" */ '@/views/Generators/Items.vue'),
+		listConfig: {
+			icon: 'fa-shield-alt',
+		},
+		name: 'Item Generator',
+		path: '/generators/items',
+	},
 ];
 
 export default pageGeneratorRoutes.map(r => { r.listConfig.parent = 'Page Generators'; return r; });

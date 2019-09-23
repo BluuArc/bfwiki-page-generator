@@ -29,3 +29,15 @@ export const SP_CATEGORY_MAPPING = Object.freeze({
 	10: 'Damage Reduction', // eslint-disable-line sort-keys
 	11: 'Special',
 });
+
+export const ITEM_TYPES = Object.freeze([
+	'consumable',
+	'material',
+	'raid',
+	'sphere',
+	'evomat',
+	'summoner_consumable',
+	'ls_sphere',
+]);
+
+export const ELEMENTS = Object.freeze(['fire', 'water', 'earth', 'thunder', 'light', 'dark']);

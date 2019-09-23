@@ -3,14 +3,18 @@ import { getFullName } from '@/utilities/bf-core/units';
 import { parseNameQuery } from './utils';
 
 /**
+ * @typedef {object} DbFilterFunctionArguments
+ * @property {{ [key: string]: object }} DbFilterFunctionArguments.db
+ * @property {{ [key: string]: any }} DbFilterFunctionArguments.filters
+ */
+
+/**
  * @type {Map<string, function(): Array<string>}
  */
 const mappingByType = new Map();
 
 /**
- * @param {object} arg0
- * @param {[key: string]: object} arg0.db
- * @param {object} arg0.filters
+ * @param {DbFilterFunctionArguments} arg0
  * @returns {Array<string>}
  */
 function getFilteredDbUnit ({ db, filters }) {
@@ -27,15 +31,42 @@ function getFilteredDbUnit ({ db, filters }) {
 	const fitsQuery = (key) => {
 		const entry = db[key];
 		const fullName = getFullName(entry).toLowerCase();
-		const strippedKey = key.toString().toLowerCase();
+		const normalizedKey = key.toString().toLowerCase();
 		const fitsName = !name || names.some(n => fullName.includes(n));
-		const fitsKey = !name || names.some(n => strippedKey.includes(n));
+		const fitsKey = !name || names.some(n => normalizedKey.includes(n));
 		return [fitsName || fitsKey].every(v => v);
 	};
 
 	return keys.filter(key => db.hasOwnProperty(key) && fitsQuery(key));
 }
-
 mappingByType.set(DATA_MAPPING.units.key, getFilteredDbUnit);
+
+/**
+ * @param {DbFilterFunctionArguments} arg0
+ * @returns {Array<string>}
+ */
+function getFilteredDbItem ({ db, filters }) {
+	if (typeof filters === 'undefined') {
+		return Object.keys(db);
+	}
+
+	const {
+		keys = Object.keys(db),
+		name = '',
+	} = filters;
+	const names = parseNameQuery(name);
+
+	const fitsQuery = (key) => {
+		const entry = db[key];
+		const name = entry.name.toLowerCase();
+		const normalizedKey = key.toString().toLowerCase();
+		const fitsName = !name || names.some(n => name.includes(n));
+		const fitsKey = !name || names.some(n => normalizedKey.includes(n));
+		return [fitsName || fitsKey].every(v => v);
+	};
+
+	return keys.filter(key => db.hasOwnProperty(key) && fitsQuery(key));
+}
+mappingByType.set(DATA_MAPPING.items.key, getFilteredDbItem);
 
 export default mappingByType;
