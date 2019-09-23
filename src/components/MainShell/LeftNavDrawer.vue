@@ -1,5 +1,6 @@
 <template>
 	<v-navigation-drawer
+		class="app-left-nav-drawer"
 		v-model="showDrawer"
 		app temporary
 		:aria-hidden="(!showDrawer).toString()"
@@ -93,3 +94,11 @@ export default {
 	},
 };
 </script>
+
+<style lang="scss">
+.app-left-nav-drawer {
+	.v-list-item__icon {
+		width: 40px;
+	}
+}
+</style>
