@@ -61,3 +61,21 @@ export const ITEM_TYPES = Object.freeze([
 ]);
 
 export const ELEMENTS = Object.freeze(['fire', 'water', 'earth', 'thunder', 'light', 'dark']);
+
+export const SPHERE_TYPE_MAPPING = Object.freeze({
+	0: 'None',
+	1: 'Status Enhancing',
+	2: 'Critical',
+	3: 'Drop',
+	4: 'Ailment Inducing',
+	5: 'Element Fusion',
+	6: 'BB Gauge',
+	7: 'HP Recovery',
+	8: 'Target Setting',
+	9: 'Damage Deflecting',
+	10: 'Damage Reducing', // eslint-disable-line sort-keys
+	11: 'Spark',
+	12: 'Defense Piercing',
+	13: 'Attack Boosting',
+	14: 'Special',
+});

@@ -11,9 +11,12 @@
 		<span class="item-title" v-text="name"/>
 		<span class="item-description">{{ entry.desc }}</span>
 		<v-layout class="item-details" align-baseline>
-			<v-flex style="flex: none;">
-				<span v-if="hasSphereType">
-					{{ entry['sphere type'] }}
+			<v-flex style="flex: none;" class="item-type">
+				<span v-if="hasSphereType" class="item-list-card--sphere-icon-wrapper pr-1">
+					<sphere-type-icon
+						:category="entry['sphere type']"
+						:displaySize="20"
+					/>
 				</span>
 				{{ itemType }}
 			</v-flex>
@@ -27,12 +30,14 @@
 <script>
 import { DEFAULT_CONTENT_URLS } from '@/utilities/constants';
 import ItemIcon from './ItemIcon';
+import SphereTypeIcon from './SphereTypeIcon';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import { getImageUrl } from '@/utilities/bf-core/items';
 
 export default {
 	components: {
 		ItemIcon,
+		SphereTypeIcon,
 	},
 	computed: {
 		hasSphereType () {
@@ -69,6 +74,16 @@ export default {
 												"img description"
 												"details details";
 	grid-column-gap: 0.5em;
+
+	.item-type {
+		display: flex;
+		align-items: center;
+		align-self: end;
+	}
+
+	.item-list-card--sphere-icon-wrapper {
+		display: flex;
+	}
 
 	.item-image {
 		grid-area: img;

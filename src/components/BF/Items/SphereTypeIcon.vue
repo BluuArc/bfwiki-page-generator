@@ -1,6 +1,7 @@
 <template>
 	<generic-sprite-icon
-		:iconTitle="spCategory"
+		class="sphere-type-icon"
+		:iconTitle="sphereCategory"
 		:iconWidth="iconSize" :iconHeight="iconSize"
 		:sheetWidth="sheetSize[0]" :sheetHeight="sheetSize[1]"
 		:displayWidth="displaySize" :displayHeight="displaySize"
@@ -11,7 +12,8 @@
 
 <script>
 import GenericSpriteIcon from '@/components/utilities/GenericSpriteIcon';
-import { SP_CATEGORY_MAPPING } from '@/utilities/bf-core/constants';
+import { SPHERE_TYPE_MAPPING } from '@/utilities/bf-core/constants';
+
 export default {
 	components: {
 		GenericSpriteIcon,
@@ -21,21 +23,21 @@ export default {
 			return 32;
 		},
 		sheetSize () {
-			return [192, 64];
+			return [320, 64];
 		},
 		source () {
-			return require('@/assets/sphere_icon_hexa.png');
+			return require('@/assets/sphere_icon.png');
 		},
-		spCategory () {
-			return SP_CATEGORY_MAPPING[this.category];
+		sphereCategory () {
+			return SPHERE_TYPE_MAPPING[this.category] || SPHERE_TYPE_MAPPING[0];
 		},
 		xCoord () {
 			const { category } = this;
-			const index = category <= 6 ? (category - 1) : (category - 7);
+			const index = category <= 9 ? (category) : (category - 10);
 			return index * this.iconSize;
 		},
 		yCoord () {
-			return this.iconSize * (this.category <= 6 ? 0 : 1);
+			return this.iconSize * (this.category <= 9 ? 0 : 1);
 		},
 	},
 	props: {
