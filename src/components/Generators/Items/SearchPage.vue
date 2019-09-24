@@ -8,11 +8,11 @@
 		<template v-slot:result="{ data }">
 			<ul class="item-results-list">
 				<li v-for="entryId in data" :key="getDataKey(entryId)">
-          {{ filteredDb[entryId] }}
-					<!-- <list-card
+					<list-card
+            style="height: 100%;"
 						:to="getEntryLink(entryId)"
 						:entry="filteredDb[entryId]"
-					/> -->
+					/>
 				</li>
 			</ul>
 		</template>
@@ -21,17 +21,17 @@
 
 <script>
 import { DATA_MAPPING } from '@/utilities/constants';
-// import ListCard from '@/components/BF/Units/ListCard';
+import ListCard from '@/components/BF/Items/ListCard';
 import SearchPageBase from '../SearchPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import getLogger from '@/utilities/Logger';
 
-const ITEM_FIELDS = ['id', 'name', 'thumbnail', 'rarity', 'type', 'desc', 'sphere type'];
+const ITEM_FIELDS = ['id', 'name', 'thumbnail', 'rarity', 'type', 'desc', 'sphere type', 'raid'];
 const logger = getLogger('ItemSearchPage');
 export default {
 	components: {
-		// ListCard,
+		ListCard,
 		SearchPageBase,
 	},
 	computed: {
