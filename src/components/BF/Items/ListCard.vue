@@ -20,7 +20,7 @@
 				</span>
 				{{ itemType }}
 			</v-flex>
-			<v-flex style="justify-self: end; flex: none;">
+			<v-flex style="justify-self: end; flex: none; display: flex; align-items: center;">
 				{{ entry.rarity }} <v-icon x-small right>fa-star</v-icon>
 			</v-flex>
 		</v-layout>
@@ -30,6 +30,7 @@
 <script>
 import { DEFAULT_CONTENT_URLS } from '@/utilities/constants';
 import ItemIcon from './ItemIcon';
+import { SPHERE_TYPE_MAPPING } from '@/utilities/bf-core/constants';
 import SphereTypeIcon from './SphereTypeIcon';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import { getImageUrl } from '@/utilities/bf-core/items';
@@ -50,10 +51,15 @@ export default {
 		},
 		itemType () {
 			const type = this.entry.type || '';
-			return `${(type[0] || '').toUpperCase()}${type.slice(1)}`;
+			const formattedType = `${(type[0] || '').toUpperCase()}${type.slice(1)}`;
+			return this.sphereType ? `${this.sphereType} ${formattedType}` : formattedType;
 		},
 		name () {
 			return `${this.entry.name} (${this.entry.id})`;
+		},
+		sphereType () {
+			const sphereType = this.entry['sphere type'];
+			return !isNaN(sphereType) ? (SPHERE_TYPE_MAPPING[sphereType] || SPHERE_TYPE_MAPPING[0]) : '';
 		},
 	},
 	props: {
