@@ -31,6 +31,14 @@ const pageGeneratorRoutes = [
 		name: 'Item Generator',
 		path: '/generators/items',
 	},
+	{
+		component: () => import(/* webpackChunkName: "generators" */ '@/views/Generators/ItemsView.vue'),
+		listConfig: {
+			hidden: true,
+		},
+		name: 'Item Generator - Loading...',
+		path: '/generators/items/:id',
+	},
 ];
 
 export default pageGeneratorRoutes.map(r => { r.listConfig.parent = 'Page Generators'; return r; });

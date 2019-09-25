@@ -17,6 +17,9 @@ export default {
 		DataDownloadCard,
 		GeneralSettingsCard,
 	},
+	created () {
+		this.$store.commit('setTitleOverride', 'BF Wiki Page Generator - Home');
+	},
 };
 </script>
 
