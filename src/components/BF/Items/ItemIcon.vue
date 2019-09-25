@@ -30,7 +30,7 @@ export default {
 	computed: {
 		backgroundSrc: () => require('@/assets/item_frame_bg2.png'),
 		frameSrc () {
-			const type = this.type;
+			const type = this.itemType;
 			const isRaidItem = this.isRaidItem;
 			if (type === ITEM_TYPES_MAPPING.CONSUMABLE && !isRaidItem) {
 				return require('@/assets/item_frame_1.png');

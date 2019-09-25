@@ -177,8 +177,9 @@ export default {
 			};
 		},
 		searchMessage () {
+			const { resultCount } = this;
 			return [
-				`${this.resultCount} results.`,
+				`${resultCount} ${resultCount !== 1 ? 'results' : 'result'}.`,
 				this.hasDirtyInput ? 'Press search button to apply filters.' : '',
 			].join(' ');
 		},

@@ -5,7 +5,7 @@
 			:thumbnailSrc="imageUrl"
 			:itemName="name"
 			:displaySize="56"
-			:itemType="itemType"
+			:itemType="entry.type"
 			:isRaidItem="!!entry.raid"
 		/>
 		<span class="item-title" v-text="name"/>
@@ -18,7 +18,7 @@
 						:displaySize="20"
 					/>
 				</span>
-				{{ itemType }}
+				{{ formattedItemType }}
 			</v-flex>
 			<v-flex style="justify-self: end; flex: none; display: flex; align-items: center;">
 				{{ entry.rarity }} <v-icon x-small right>fa-star</v-icon>
@@ -28,9 +28,9 @@
 </template>
 
 <script>
+import { ITEM_TYPES_NAMES_MAPPING, SPHERE_TYPE_MAPPING } from '@/utilities/bf-core/constants';
 import { DEFAULT_CONTENT_URLS } from '@/utilities/constants';
 import ItemIcon from './ItemIcon';
-import { SPHERE_TYPE_MAPPING } from '@/utilities/bf-core/constants';
 import SphereTypeIcon from './SphereTypeIcon';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import { getImageUrl } from '@/utilities/bf-core/items';
@@ -41,6 +41,11 @@ export default {
 		SphereTypeIcon,
 	},
 	computed: {
+		formattedItemType () {
+			const type = this.entry.type || '';
+			const formattedType = ITEM_TYPES_NAMES_MAPPING[type] || type;
+			return this.sphereType ? `${this.sphereType} ${formattedType}` : formattedType;
+		},
 		hasSphereType () {
 			return this.entry.hasOwnProperty('sphere type');
 		},
@@ -48,11 +53,6 @@ export default {
 			const server = appLocalStorageStore.serverName;
 			const baseUrl = appLocalStorageStore.getUrlForServer(server) || DEFAULT_CONTENT_URLS[server];
 			return getImageUrl(baseUrl, this.entry.thumbnail);
-		},
-		itemType () {
-			const type = this.entry.type || '';
-			const formattedType = `${(type[0] || '').toUpperCase()}${type.slice(1)}`;
-			return this.sphereType ? `${this.sphereType} ${formattedType}` : formattedType;
 		},
 		name () {
 			return `${this.entry.name} (${this.entry.id})`;

@@ -7,6 +7,7 @@
 				:sortNames="sortNames"
 				:filterNames="filterNames"
 				:value="searchAreaInput"
+				:resultCount="resultCount"
 			>
 				<template v-for="name in filterNames">
 					<slot :name="`filter-${name}`" :slot="`filter-${name}`" slot-scope="{ filters }" :filters="filters">
@@ -93,6 +94,9 @@ export default {
 				maxAmountToShow = 4;
 			}
 			return maxAmountToShow;
+		},
+		resultCount () {
+			return this.allResultsFiltered.length;
 		},
 		resultsToShow () {
 			const { pageIndex, pageSize } = this;
