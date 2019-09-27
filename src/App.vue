@@ -57,6 +57,14 @@ export default {
 html.page-html {
 	overflow-y: auto;
 
+	.theme--light {
+		--divider-color: rgba(0, 0, 0, 0.12);
+	}
+
+	.theme--dark {
+		--divider-color: rgba(255, 255, 255, 0.12);
+	}
+
 	&.overflow-y-hidden {
 		overflow-y: hidden;
 	}

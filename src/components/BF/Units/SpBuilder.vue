@@ -20,8 +20,8 @@
 			v-for="(entry, i) in spEntries"
 			:key="entry.id"
 			class="sp-builder--entry"
+			:data-selected="selectedCodes.includes(allEntriesCode[i])"
 		>
-			<v-divider class="sp-builder--divider py-2"/>
 			<v-checkbox
 				class="sp-builder--checkbox pl-2"
 				:input-value="selectedCodes.includes(allEntriesCode[i])"
@@ -201,26 +201,32 @@ export default {
 ul.sp-builder {
 	@include list-style-reset();
 
+	.theme--light & {
+		.sp-builder--entry[data-selected=true] {
+			background: #E0E0E0; // gray lighten-2
+		}
+	}
+
+	.theme--dark & {
+		.sp-builder--entry[data-selected=true] {
+			background: #616161; // gray darken-2
+		}
+	}
+
 	.sp-builder--entry {
-		margin: 0.5em 0;
+		padding: 0.5em 0;
 		display: grid;
 		grid-template-columns: 100px 40px 1fr 44px;
 		grid-template-rows: auto auto auto auto;
-		grid-template-areas:	"div div div div"
-													"checkbox category-icon desc expand"
+		grid-template-areas:	"checkbox category-icon desc expand"
 													"json json json json";
 		align-items: center;
 		grid-column-gap: 1em;
+		border-bottom: 1px solid var(--divider-color);
 
 		&.sp-builder--header {
-			// header does not have a divideer
+			// header does not have a column for button
 			grid-template-rows: auto auto auto;
-			grid-template-areas:	"checkbox category-icon desc expand"
-														"json json json json";
-		}
-
-		.sp-builder--divider {
-			grid-area: div;
 		}
 
 		.sp-builder--expansion-icon {
