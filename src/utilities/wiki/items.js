@@ -29,6 +29,28 @@ async function generateFlavorText (item) {
 }
 
 /**
+ * @param {Array<{ count: number, id: number }>} materials
+ * @returns {Promise<import('./utils').WikiDataPair[]>}
+ */
+async function generateCraftMats (materials) {
+	const result = [];
+	if (Array.isArray(materials) && materials.length > 0) {
+		const craftDb = await bfDatabase.then(worker => worker.getByIds({
+			extractedFields: ['name'],
+			ids: materials.map(entry => entry.id),
+			server: appLocalStorageStore.serverName,
+			table: DATA_MAPPING.items.key,
+		}));
+
+		result.push([
+			'|craftMats',
+			materials.map(m => `${(craftDb[m.id] && craftDb[m.id].name) || m.id},${m.count}`).join(';'),
+		]);
+	}
+	return result;
+}
+
+/**
  * @param {object} item
  */
 export async function generateItemTemplate (item) {
@@ -49,7 +71,7 @@ export async function generateItemTemplate (item) {
 		['|craftCost', (item.recipe && item.recipe.karma) || ''],
 		['|sellValue', item.sell_price],
 		['|esunit', ''],
-		['|craftMats', ''], // TODO: pull from item.recipe.materials
+		...(await generateCraftMats(item.recipe && item.recipe.materials)),
 		['|carryLimit', (item.type !== ITEM_TYPES_MAPPING.SPHERE && item.max_stack) || ''],
 		['|craftInto', ''],
 		['|raidonly', item.raid || ''],
