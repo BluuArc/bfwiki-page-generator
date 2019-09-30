@@ -1,5 +1,8 @@
 import { DATA_MAPPING, SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
-import { getBaseMaterialsOfItem as _getBaseMaterialsOfItem } from './multidex/items';
+import {
+	getBaseMaterialsOfItem as _getBaseMaterialsOfItem,
+	getImmediateUsageForItem as _getImmediateUsageForItem,
+} from './multidex/items';
 import { createPairKey } from './utils';
 import dbFilters from './multidex/filters';
 import dbInstance from './dexie-instance';
@@ -332,7 +335,7 @@ export class BfDatabase {
 	 * @param {object} arg0
 	 * @param {string} arg0.id
 	 * @param {string?} arg0.server
-	 * @param {string} arg0.table
+	 * @returns {Promise<{ name: string, id: string|number, count: number }>}
 	 */
 	async getBaseMaterialsOfItem ({ id, server }) {
 		const db = await this._getDatamineDb({ server, table: DATA_MAPPING.items.key });
@@ -350,6 +353,18 @@ export class BfDatabase {
 			);
 		}
 		return results;
+	}
+
+	/**
+	 * @param {object} arg0
+	 * @param {string} arg0.id
+	 * @param {string?} arg0.server
+	 * @returns {Promise<{ count: number, id: number, name: string }[]>}
+	 */
+	async getImmediateUsageForItem ({ id, server }) {
+		const db = await this._getDatamineDb({ server, table: DATA_MAPPING.items.key });
+		const item = db[id];
+		return _getImmediateUsageForItem(item, db);
 	}
 }
 

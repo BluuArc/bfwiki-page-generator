@@ -80,6 +80,32 @@ async function generateBaseTotalMats (item) {
 
 /**
  * @param {object} item
+ * @returns {Promise<import('./utils').WikiDataPair[]>}
+ */
+async function generateCraftInto (item) {
+	/**
+	 * @type {Array<{ name: string, id: string|number, count: number }>}
+	 */
+	const requiringItems = await bfDatabase.then(worker => worker.getImmediateUsageForItem({
+		id: item.id,
+		server: appLocalStorageStore.serverName,
+	}));
+	const results = [];
+	if (requiringItems.length > 0) {
+		const transformedValues = requiringItems
+			.map(m => `${m.name},${m.count}`)
+			.sort((a, b) => a.localeCompare(b))
+			.join(';');
+		results.push([
+			'|craftInto',
+			transformedValues,
+		]);
+	}
+	return results;
+}
+
+/**
+ * @param {object} item
  */
 export async function generateItemTemplate (item) {
 	/**
@@ -101,7 +127,7 @@ export async function generateItemTemplate (item) {
 		['|esunit', ''],
 		...(await generateCraftMats(item.recipe && item.recipe.materials)),
 		['|carryLimit', (item.type !== ITEM_TYPES_MAPPING.SPHERE && item.max_stack) || ''],
-		['|craftInto', ''], // TODO
+		...(await generateCraftInto(item)),
 		['|raidonly', item.raid || ''],
 		['|howToObtain', ''],
 		['|notes', ''],
