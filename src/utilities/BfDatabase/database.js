@@ -1,10 +1,10 @@
-import { SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
+import { DATA_MAPPING, SERVERS, SERVER_NAME_MAPPING } from '@/utilities/constants';
+import { getBaseMaterialsOfItem as _getBaseMaterialsOfItem } from './multidex/items';
 import { createPairKey } from './utils';
 import dbFilters from './multidex/filters';
 import dbInstance from './dexie-instance';
 import dbSorts from './multidex/sorts';
 import getLogger from '@/utilities/Logger';
-
 const logger = getLogger('BfDatabase');
 export class BfDatabase {
 	constructor (inputDb = dbInstance, inputLogger = logger) {
@@ -326,6 +326,30 @@ export class BfDatabase {
 			table,
 		});
 		return result[id];
+	}
+
+	/**
+	 * @param {object} arg0
+	 * @param {string} arg0.id
+	 * @param {string?} arg0.server
+	 * @param {string} arg0.table
+	 */
+	async getBaseMaterialsOfItem ({ id, server }) {
+		const db = await this._getDatamineDb({ server, table: DATA_MAPPING.items.key });
+		const item = db[id];
+		const results = [];
+		if (item) {
+			const baseMaterials = _getBaseMaterialsOfItem(item, db);
+			results.push(
+				...Object.entries(baseMaterials.materials)
+					.map(([materialId, count]) => ({
+						count,
+						id: materialId,
+						name: (db[materialId] && db[materialId].name) || materialId,
+					}))
+			);
+		}
+		return results;
 	}
 }
 

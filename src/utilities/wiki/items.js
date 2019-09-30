@@ -7,6 +7,8 @@ import { ITEM_TYPES_MAPPING } from '@/utilities/bf-core/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 
+const WIKI_TABLE_CHUNK_SIZE = 70;
+
 /**
  * @param {object} item
  * @returns {Promise<import('./utils').WikiDataPair[]>}
@@ -52,6 +54,32 @@ async function generateCraftMats (materials) {
 
 /**
  * @param {object} item
+ * @returns {Promise<import('./utils').WikiDataPair[]>}
+ */
+async function generateBaseTotalMats (item) {
+	/**
+	 * @type {Array<{ name: string, id: string|number, count: number }>}
+	 */
+	const baseMaterials = await bfDatabase.then(worker => worker.getBaseMaterialsOfItem({
+		id: item.id,
+		server: appLocalStorageStore.serverName,
+	}));
+	baseMaterials.sort((a, b) => a.name.localeCompare(b.name));
+	const results = [];
+	const numberOfChunks = Math.ceil(baseMaterials.length / WIKI_TABLE_CHUNK_SIZE);
+	for (let i = 0; i < numberOfChunks; ++i) {
+		const startIndex = i * WIKI_TABLE_CHUNK_SIZE;
+		const chunk = baseMaterials.slice(startIndex, startIndex + WIKI_TABLE_CHUNK_SIZE);
+		results.push([
+			`|baseTotalMats${i !== 0 ? (i + 1) : ''}`,
+			chunk.map(m => `${m.name},${m.count}`).join(';'),
+		]);
+	}
+	return results;
+}
+
+/**
+ * @param {object} item
  */
 export async function generateItemTemplate (item) {
 	/**
@@ -59,7 +87,7 @@ export async function generateItemTemplate (item) {
 	 */
 	const templateData = [
 		['|unreleased', ''],
-		['|type', item.type || ''],
+		['|type', (item.type || '').replace(/_/g, '')],
 		['|sphereType', item['sphere type text'] || ''],
 		['|rarity', generateRarityString(item.rarity)],
 		['|element', ''],
@@ -73,11 +101,11 @@ export async function generateItemTemplate (item) {
 		['|esunit', ''],
 		...(await generateCraftMats(item.recipe && item.recipe.materials)),
 		['|carryLimit', (item.type !== ITEM_TYPES_MAPPING.SPHERE && item.max_stack) || ''],
-		['|craftInto', ''],
+		['|craftInto', ''], // TODO
 		['|raidonly', item.raid || ''],
 		['|howToObtain', ''],
 		['|notes', ''],
-		['|baseTotalMats', ''],
+		...(await generateBaseTotalMats(item)),
 		['|incorrectinfo', ''],
 	];
 	return `{{{{#if:{{{1|}}}|ItemProp|Item}}|prop={{{1|}}}
