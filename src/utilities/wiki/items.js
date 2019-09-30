@@ -66,10 +66,14 @@ async function generateBaseTotalMats (item) {
 	}));
 	baseMaterials.sort((a, b) => a.name.localeCompare(b.name));
 	const results = [];
-	const numberOfChunks = Math.ceil(baseMaterials.length / WIKI_TABLE_CHUNK_SIZE);
+
+	// split into chunks of even sizes
+	const numMaterials = baseMaterials.length;
+	const numberOfChunks = Math.ceil(numMaterials / WIKI_TABLE_CHUNK_SIZE);
+	const chunkSize = Math.ceil(numMaterials / Math.max(numberOfChunks, 1));
 	for (let i = 0; i < numberOfChunks; ++i) {
-		const startIndex = i * WIKI_TABLE_CHUNK_SIZE;
-		const chunk = baseMaterials.slice(startIndex, startIndex + WIKI_TABLE_CHUNK_SIZE);
+		const startIndex = i * chunkSize;
+		const chunk = baseMaterials.slice(startIndex, startIndex + chunkSize);
 		results.push([
 			`|baseTotalMats${i !== 0 ? (i + 1) : ''}`,
 			chunk.map(m => `${m.name},${m.count}`).join(';'),
