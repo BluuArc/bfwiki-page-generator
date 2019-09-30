@@ -8,6 +8,10 @@ import {
 	getBurstLevelEntry,
 } from '@/utilities/bf-core/bursts';
 import {
+	generateRarityString,
+	generateTemplateBody,
+} from './utils';
+import {
 	getSpCost,
 	getSpDependencyText,
 	getSpDescription,
@@ -16,7 +20,6 @@ import {
 import { DATA_MAPPING } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
-import { generateTemplateBody } from './utils';
 import { getEvolutions } from '@/utilities/bf-core/units';
 import { getNumberOrDefault } from '@/utilities/utils';
 
@@ -432,9 +435,6 @@ async function generateEvolutionData (unit) {
  */
 export async function generateUnitTemplate (unit) {
 	const unitRarity = +unit.rarity;
-	const wikiRarity = unitRarity === 8
-		? 'Omni'
-		: new Array(unitRarity || 0).fill('★').join('');
 	/**
 	 * @type {import('./utils').WikiDataPair}
 	 */
@@ -444,7 +444,7 @@ export async function generateUnitTemplate (unit) {
 		['|has_altart', ''],
 		['|no', unit.guide_id],
 		['|element', ELEMENT_NAME_MAPPING[unit.element]],
-		['|rarity', wikiRarity],
+		['|rarity', generateRarityString(unitRarity)],
 		['|cost', unit.cost],
 		['|maxlv', MAX_LEVEL_MAPPING[unitRarity] || ''],
 		['|basexp', 21],

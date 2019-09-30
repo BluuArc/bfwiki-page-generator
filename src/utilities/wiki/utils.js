@@ -23,3 +23,13 @@ export function generateTemplateBody (pairs) {
 		.map(([key, value]) => `${padEnd(key, longestKeyLength, ' ')} = ${value}`)
 		.join('\n');
 }
+
+/**
+ * @param {number} rarity
+ */
+export function generateRarityString (rarity) {
+	const numericalRarity = !isNaN(rarity) ? Math.max(+rarity, 0) : 0;
+	return numericalRarity === 8
+		? 'Omni'
+		: new Array(numericalRarity).fill('★').join('');
+}

@@ -16,7 +16,7 @@ import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
 import ViewPageBase from '@/components/Generators/ViewPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
-// import { generateUnitTemplate } from '@/utilities/wiki/units';
+import { generateItemTemplate } from '@/utilities/wiki/items';
 import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('ItemsView');
@@ -70,7 +70,7 @@ export default {
 			return Promise.resolve()
 				.then(() => {
 					if (itemData) {
-						return `TODO: item template for ${itemData.name}`;
+						return generateItemTemplate(itemData);
 					} else {
 						return `No item found with ID ${this.entryId}`;
 					}
