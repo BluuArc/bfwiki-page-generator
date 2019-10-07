@@ -6,26 +6,23 @@
 		:generateWikiTemplate="getWikiTemplate"
 		:tabConfig="tabConfig"
 	>
-		<!-- Recipe Viewer? -->
 	</view-page-base>
 </template>
 
 <script>
 import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
-// import PromiseWait from '@/components/utilities/PromiseWait';
 import ViewPageBase from '@/components/Generators/ViewPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
-import { generateItemTemplate } from '@/utilities/wiki/items';
+// import { generateItemTemplate } from '@/utilities/wiki/items';
 import getLogger from '@/utilities/Logger';
 
-const logger = getLogger('ItemsView');
+const logger = getLogger('ExtraSkillsView');
 export default {
 	beforeDestroy () {
 		this.$store.commit('setTitleOverride', '');
 	},
 	components: {
-		// PromiseWait,
 		ViewPageBase,
 	},
 	computed: {
@@ -40,39 +37,39 @@ export default {
 		},
 	},
 	created () {
-		this.$store.commit('setTitleOverride', `Item Generator - ${this.$route.params.id}`);
+		this.$store.commit('setTitleOverride', `Extra Skill Generator - ${this.$route.params.id}`);
 	},
 	data () {
 		return {
-			itemDataPromise: () => Promise.resolve(null),
+			skillDataPromise: () => Promise.resolve(null),
 			wikiTemplate: 'Loading template...',
 		};
 	},
 	methods: {
 		getData () {
-			this.itemDataPromise = bfDatabase
+			this.skillDataPromise = bfDatabase
 				.then(worker => worker.getById({
 					id: this.entryId,
 					server: appLocalStorageStore.serverName,
-					table: DATA_MAPPING.items.key,
+					table: DATA_MAPPING.extraSkills.key,
 				}))
-				.then(itemData => {
-					logger.debug({ itemData });
-					if (itemData) {
-						// this.itemData = itemData;
-						this.$store.commit('setTitleOverride', `Item Generator - ${itemData.name}`);
+				.then(skillData => {
+					logger.debug({ skillData });
+					if (skillData) {
+						// this.skillData = skillData;
+						this.$store.commit('setTitleOverride', `Extra Skill Generator - ${skillData.name}`);
 					}
-					return itemData;
+					return skillData;
 				});
-			return this.itemDataPromise;
+			return this.skillDataPromise;
 		},
-		getWikiTemplate (itemData) {
+		getWikiTemplate (skillData) {
 			return Promise.resolve()
 				.then(() => {
-					if (itemData) {
-						return generateItemTemplate(itemData);
+					if (skillData) {
+						return 'TODO: Extra Skill template';
 					} else {
-						return `No item found with ID ${this.entryId}`;
+						return `No extra skill found with ID ${this.entryId}`;
 					}
 				});
 		},

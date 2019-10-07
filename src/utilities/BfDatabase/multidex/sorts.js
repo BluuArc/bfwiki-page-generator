@@ -74,4 +74,21 @@ function sortItems ({ db, keys, sortOptions }) {
 }
 mappingByType.set(DATA_MAPPING.items.key, sortItems);
 
+/**
+ * @param {DbSortFunctionArguments} arg0
+ * @returns {Array<string>}
+ */
+function sortExtraSkills ({ db, keys, sortOptions }) {
+	return sortWrapper({
+		keys,
+		sortOptions,
+		sortTypes: {
+			Alphabetical: (idA, idB) => commonSorts.Alphabetical(idA, idB, (id) => db[id].name),
+			Rarity: (idA, idB) => commonSorts.Numerical(idA, idB, (id) => +db[id].rarity),
+			'Skill ID': commonSorts.ID,
+		},
+	});
+}
+mappingByType.set(DATA_MAPPING.extraSkills.key, sortExtraSkills);
+
 export default mappingByType;

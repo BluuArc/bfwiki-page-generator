@@ -39,6 +39,22 @@ const pageGeneratorRoutes = [
 		name: 'Item Generator - Loading...',
 		path: '/generators/items/:id',
 	},
+	{
+		component: () => import(/* webpackChunkName: "generators" */ '@/views/Generators/ExtraSkills.vue'),
+		listConfig: {
+			icon: 'fa-tablet',
+		},
+		name: 'Extra Skill Generator',
+		path: '/generators/extra-skills',
+	},
+	{
+		component: () => import(/* webpackChunkName: "generators" */ '@/views/Generators/ExtraSkillsView.vue'),
+		listConfig: {
+			hidden: true,
+		},
+		name: 'Extra Skill Generator - Loading...',
+		path: '/generators/extra-skills/:id',
+	},
 ];
 
 export default pageGeneratorRoutes.map(r => { r.listConfig.parent = 'Page Generators'; return r; });
