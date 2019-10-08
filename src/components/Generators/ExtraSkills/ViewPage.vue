@@ -6,6 +6,29 @@
 		:generateWikiTemplate="getWikiTemplate"
 		:tabConfig="tabConfig"
 	>
+		<template v-slot:templateOptions="{ inputChanged }">
+			<v-flex class="px-3">
+				<v-combobox
+					v-model="elgifSeries"
+					:items="DEFAULT_SERIES"
+					label="Elgif Categories"
+					small-chips
+					multiple
+					clearable
+					@change="inputChanged"
+				>
+					<template v-slot:no-data>
+						<v-list-item>
+							<v-list-item-content>
+								<v-list-item-title>
+									No results matching query. Press <kbd>enter</kbd> to create a new one.
+								</v-list-item-title>
+							</v-list-item-content>
+						</v-list-item>
+					</template>
+				</v-combobox>
+			</v-flex>
+		</template>
 	</view-page-base>
 </template>
 
@@ -14,7 +37,7 @@ import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
 import ViewPageBase from '@/components/Generators/ViewPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
-// import { generateItemTemplate } from '@/utilities/wiki/items';
+import { generateExtraSkillTemplate } from '@/utilities/wiki/extra-skills';
 import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('ExtraSkillsView');
@@ -26,6 +49,29 @@ export default {
 		ViewPageBase,
 	},
 	computed: {
+		DEFAULT_SERIES: () => [
+			'AilmentSeries',
+			'AoESeries',
+			'AuthoritySeries',
+			'BBAtkSeries',
+			'BBSeries',
+			'BreakAtkSeries',
+			'CritSeries',
+			'DropRateSeries',
+			'EWDSeries',
+			'GlobalExclusiveSeries',
+			'HitCountSeries',
+			'HPSeries',
+			'IgnoreDefSeries',
+			'MitigationSeries',
+			'NegateSeries',
+			'ODFillSeries',
+			'OracleSeries',
+			'PassionSeries',
+			'SparkSeries',
+			'TabletSeries',
+			'TemporarySeries',
+		],
 		dataArguments () {
 			return [this.entryId];
 		},
@@ -41,6 +87,7 @@ export default {
 	},
 	data () {
 		return {
+			elgifSeries: [],
 			skillDataPromise: () => Promise.resolve(null),
 			wikiTemplate: 'Loading template...',
 		};
@@ -67,7 +114,7 @@ export default {
 			return Promise.resolve()
 				.then(() => {
 					if (skillData) {
-						return 'TODO: Extra Skill template';
+						return generateExtraSkillTemplate(skillData, this.elgifSeries || []);
 					} else {
 						return `No extra skill found with ID ${this.entryId}`;
 					}

@@ -1,5 +1,6 @@
 <template>
 	<section class="wiki-template-viewer">
+		<slot name="templateOptions" :inputChanged="getWikiTemplate"/>
 		<copy-button block :value="wikiTemplate"/>
 		<pre><code v-text="wikiTemplate"/></pre>
 	</section>

@@ -25,7 +25,11 @@
 								<wiki-template-viewer
 									v-if="!isLoading"
 									:generateTemplate="generateWikiTemplateLocal"
-								/>
+								>
+									<template v-slot:templateOptions="{ inputChanged }">
+										<slot name="templateOptions" :inputChanged="inputChanged"/>
+									</template>
+								</wiki-template-viewer>
 							</template>
 							<template v-else-if="i === tabIndexJson">
 								<json-explorer-view
