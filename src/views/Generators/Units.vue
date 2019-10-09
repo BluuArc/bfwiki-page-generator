@@ -5,9 +5,10 @@
 </template>
 
 <script>
-import { DATA_MAPPING, EXPECTED_TABLE_MAPPING } from '@/utilities/constants';
+import { DATA_MAPPING, EXPECTED_TABLE_MAPPING, SERVER_NAME_MAPPING } from '@/utilities/constants';
 import SearchPage from '@/components/Generators/Units/SearchPage';
 import TableChecker from '@/components/utilities/TableChecker';
+import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 
 export default {
 	components: {
@@ -15,7 +16,13 @@ export default {
 		TableChecker,
 	},
 	computed: {
-		expectedTables: () => EXPECTED_TABLE_MAPPING[DATA_MAPPING.units.key].slice(),
+		expectedTables: () => {
+			let tables = EXPECTED_TABLE_MAPPING[DATA_MAPPING.units.key].slice();
+			if (appLocalStorageStore.serverName !== SERVER_NAME_MAPPING.Global) {
+				tables = tables.filter(t => t !== DATA_MAPPING.dictionary.key);
+			}
+			return tables;
+		},
 	},
 };
 </script>

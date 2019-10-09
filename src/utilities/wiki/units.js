@@ -21,7 +21,10 @@ import { DATA_MAPPING } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import { getEvolutions } from '@/utilities/bf-core/units';
+import getLogger from '@/utilities/Logger';
 import { getNumberOrDefault } from '@/utilities/utils';
+
+const logger = getLogger('generateUnitTemplate');
 
 // TODO: things to support
 /**
@@ -240,7 +243,7 @@ function generateMovementData (unit) {
 	const movespeedProps = ['movespeed', 'speedtype', 'movetype'];
 	const result = [];
 	['attack', 'idle', 'move'].forEach(prop => {
-		result.push([`|animation_${prop}`, getAnimationForProperty(prop, unit)]);
+		result.push([`|animation_${prop}`, getAnimationForProperty(prop, unit) || '']);
 	});
 	['attack', 'skill'].forEach(prop => {
 		const moveSpeedData = getMoveSpeedForProperty(prop, unit);
@@ -387,12 +390,18 @@ async function generateFlavorText (unit) {
 		acc[key] = `${baseKey}${key.toUpperCase()}`;
 		return acc;
 	}, {});
-	const dictionaryData = await bfDatabase.then(worker => worker.getByIds({
-		extractedFields: ['en'],
-		ids: Object.values(dictionaryKeys),
-		server: appLocalStorageStore.serverName,
-		table: DATA_MAPPING.dictionary.key,
-	}));
+	let dictionaryData = {};
+	try {
+		dictionaryData = await bfDatabase.then(worker => worker.getByIds({
+			extractedFields: ['en'],
+			ids: Object.values(dictionaryKeys),
+			server: appLocalStorageStore.serverName,
+			table: DATA_MAPPING.dictionary.key,
+		}));
+	} catch (e) {
+		logger.error('Error grabbing dictionary data', e);
+		dictionaryData = {};
+	}
 	return keys.map(key => {
 		const dictionaryEntry = dictionaryData[dictionaryKeys[key]];
 		return [`|${key}`, (dictionaryEntry && dictionaryEntry.en) || ''];

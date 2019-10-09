@@ -6,27 +6,35 @@ import { DATA_MAPPING } from '@/utilities/constants';
 import { ITEM_TYPES_MAPPING } from '@/utilities/bf-core/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
+import getLogger from '@/utilities/Logger';
 
 const WIKI_TABLE_CHUNK_SIZE = 70;
+const logger = getLogger('generateItemTemplate');
 
 /**
  * @param {object} item
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateFlavorText (item) {
-	const itemId = item.id;
-	const keys = ['ITEMS_BATTLEITEMS', 'ITEMS_MATERIAL', 'LSSPHERE', 'SPHERES'];
-	const dictionaryKeys = keys.reduce((acc, key) => {
-		acc[key] = `MST_${key}_${itemId}_LONGDESCRIPTION`;
-		return acc;
-	}, {});
-	const dictionaryData = await bfDatabase.then(worker => worker.getByIds({
-		extractedFields: ['en'],
-		ids: Object.values(dictionaryKeys),
-		server: appLocalStorageStore.serverName,
-		table: DATA_MAPPING.dictionary.key,
-	}));
-	const lore = Object.values(dictionaryData).reduce((acc, val) => acc || (val && val.en) || '', '');
+	let lore = '';
+	try {
+		const itemId = item.id;
+		const keys = ['ITEMS_BATTLEITEMS', 'ITEMS_MATERIAL', 'LSSPHERE', 'SPHERES'];
+		const dictionaryKeys = keys.reduce((acc, key) => {
+			acc[key] = `MST_${key}_${itemId}_LONGDESCRIPTION`;
+			return acc;
+		}, {});
+		const dictionaryData = await bfDatabase.then(worker => worker.getByIds({
+			extractedFields: ['en'],
+			ids: Object.values(dictionaryKeys),
+			server: appLocalStorageStore.serverName,
+			table: DATA_MAPPING.dictionary.key,
+		}));
+		lore = Object.values(dictionaryData).reduce((acc, val) => acc || (val && val.en) || '', '');
+	} catch (e) {
+		logger.error('Error grabbing lore data', e);
+		lore = '';
+	}
 	return [['|longDescription', lore]];
 }
 
