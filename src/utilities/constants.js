@@ -89,7 +89,7 @@ export const BASE_DATAMINE_URL = 'https://raw.githubusercontent.com/cheahjs/brav
 
 export const DEFAULT_CONTENT_URLS = Object.freeze({
 	EU: 'http://static-bravefrontier.gumi-europe.net/content',
-	GL: 'https://dv5bk1m8igv7v.cloudfront.net/asset/2400/content',
+	GL: 'https://dv5bk1m8igv7v.cloudfront.net/asset/2500/content',
 	JP: 'http://cdn.android.brave.a-lim.jp',
 });
 
