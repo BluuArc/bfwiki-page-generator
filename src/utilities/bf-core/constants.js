@@ -79,3 +79,24 @@ export const SPHERE_TYPE_MAPPING = Object.freeze({
 	13: 'Attack Boosting',
 	14: 'Special',
 });
+
+export const TARGET_AREA_MAPPING = Object.freeze({
+	aoe: 'AOE',
+	random: 'RT',
+	single: 'ST',
+});
+
+export const BURST_TYPE_MAPPING = Object.freeze({
+	BB: 'bb',
+	SBB: 'sbb',
+	UBB: 'ubb',
+	bb: 'BB',
+	sbb: 'SBB',
+	ubb: 'UBB',
+});
+
+export const BURST_TYPES = Object.freeze([
+	BURST_TYPE_MAPPING.BB,
+	BURST_TYPE_MAPPING.SBB,
+	BURST_TYPE_MAPPING.UBB,
+]);

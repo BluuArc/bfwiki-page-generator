@@ -31,6 +31,7 @@ export default {
 				.then(templateData => {
 					this.wikiTemplate = templateData;
 				}).catch(err => {
+					logger.error(err);
 					this.wikiTemplate = err;
 				});
 		},

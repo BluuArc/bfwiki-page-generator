@@ -5,7 +5,9 @@ import {
 } from '@/utilities/bf-core/constants';
 import {
 	extractAttackingDamageFrames,
+	getAttackingEffectsForEffectsList,
 	getBurstLevelEntry,
+	getExtraAttackFrames,
 } from '@/utilities/bf-core/bursts';
 import {
 	generateRarityString,
@@ -101,11 +103,56 @@ function getDamageFrames (damageFramesEntry) {
 }
 
 /**
+ * @param {object} unit
+ * @param {object} spData
+ * @param {string} burstProp
+ */
+function getExtraAttackInfo (unit, burstProp, spData) {
+	// assumption: unit[burstProp] exists
+	const extraAttackFrames = getExtraAttackFrames(unit[burstProp]);
+	let extraAttacks = [];
+
+	[
+		{
+			key: 'leader skill',
+			name: 'LS',
+		},
+		{
+			key: 'extra skill',
+			name: 'ES',
+		},
+	].forEach(({ key, name }) => {
+		if (unit[key]) {
+			const attackingEffects = getAttackingEffectsForEffectsList(unit[key].effects, name, () => extraAttackFrames)
+				.filter(e => e[burstProp]);
+			extraAttacks = extraAttacks.concat(attackingEffects);
+		}
+	});
+
+	if (spData && spData.skills) {
+		const allEffects = spData.skills
+			.map(s => s.skill.effects)
+			.reduce((acc, effectsArr) => acc.concat(effectsArr), [])
+			.filter(s => s.passive)
+			.map(s => s.passive);
+		const attackingEffects = getAttackingEffectsForEffectsList(allEffects, 'SP', () => extraAttackFrames)
+			.filter(e => e[burstProp]);
+		extraAttacks = extraAttacks.concat(attackingEffects);
+	}
+
+	return {
+		extraAttacks: extraAttacks.map(attack => attack.originalEffect),
+		frames: extraAttackFrames,
+	};
+}
+
+/**
  * @param {string} burstProp
  * @param {object} unit
+ * @param {object} spData
  * @returns {WikiDamageFramesEntry[]}
  */
-function getBurstFrameData (burstProp, unit) {
+function getBurstFrameData (burstProp, unit, spData) {
 	/**
 	 * @type {WikiDamageFramesEntry[]}
 	 */
@@ -113,17 +160,31 @@ function getBurstFrameData (burstProp, unit) {
 	if (unit[burstProp] && unit[burstProp]['damage frames']) {
 		const lastLevel = getBurstLevelEntry(unit[burstProp]);
 		const attackingFrames = extractAttackingDamageFrames(unit[burstProp]['damage frames']);
+		const applyEffectDataToFrame = (frame, correspondingEffect) => {
+			frame.target = (correspondingEffect['target area'] === 'aoe' && !correspondingEffect['random attack']) ? 'A' : '1';
+			if (!isNaN(correspondingEffect.hits)) {
+				frame.hits = +correspondingEffect.hits;
+			}
+			frame.multiplier = correspondingEffect['bb atk%'] || correspondingEffect['bb base atk%'];
+			frame.hpScaled = correspondingEffect.hasOwnProperty('bb added atk% based on hp');
+			frame.sourcePath = correspondingEffect.sourcePath;
+			return frame;
+		};
 		result = attackingFrames.map(getDamageFrames)
 			.map(frame => {
 				const correspondingEffect = lastLevel.effects[frame.frameIndex];
-				frame.target = (correspondingEffect['target area'] === 'aoe' && !correspondingEffect['random attack']) ? 'A' : '1';
-				if (!isNaN(correspondingEffect.hits)) {
-					frame.hits = +correspondingEffect.hits;
-				}
-				frame.multiplier = correspondingEffect['bb atk%'] || correspondingEffect['bb base atk%'];
-				frame.hpScaled = correspondingEffect.hasOwnProperty('bb added atk% based on hp');
-				return frame;
+				return applyEffectDataToFrame(frame, correspondingEffect);
 			});
+
+		const extraAttackInfo = getExtraAttackInfo(unit, burstProp, spData);
+		logger.warn({ extraAttackInfo });
+		result = result.concat(extraAttackInfo.extraAttacks.map(effect => {
+			const frameData = {
+				...extraAttackInfo.frames,
+				'effect delay time(ms)/frame': effect['effect delay time(ms)/frame'],
+			};
+			return applyEffectDataToFrame(getDamageFrames(frameData), effect);
+		}));
 	}
 	return result;
 }
@@ -164,9 +225,10 @@ function getStatEntriesForType (type, unit) {
 /**
  * @param {string} type
  * @param {object} unit
+ * @param {object} spData
  * @returns {{ dc: number, desc: string, gauge: number, name: string, attacks: WikiDamageFramesEntry[], type: "Offense"|"Heal"|"Support" }}
  */
-function getBurstInfo (type, unit) {
+function getBurstInfo (type, unit, spData) {
 	const result = {
 		attacks: [],
 		dc: '',
@@ -177,7 +239,7 @@ function getBurstInfo (type, unit) {
 	};
 	if (unit[type]) {
 		const burstEntry = unit[type];
-		result.attacks = getBurstFrameData(type, unit);
+		result.attacks = getBurstFrameData(type, unit, spData);
 		result.name = burstEntry.name;
 		result.desc = burstEntry.desc;
 		result.dc = burstEntry['drop check count'];
@@ -198,15 +260,22 @@ function getBurstInfo (type, unit) {
 
 /**
  * @param {object} unit
- * @returns {import('./utils').WikiDataPair}
+ * @returns {Promise<object>}
  */
-async function generateSpData (unit) {
-	const result = [];
-	const spData = await bfDatabase.then(worker => worker.getById({
+function getSpData (unit) {
+	return bfDatabase.then(worker => worker.getById({
 		id: unit.id,
 		server: appLocalStorageStore.serverName,
 		table: DATA_MAPPING.spEnhancements.key,
 	}));
+}
+
+/**
+ * @param {object} spData
+ * @returns {import('./utils').WikiDataPair}
+ */
+async function generateSpData (spData) {
+	const result = [];
 	if (spData && Array.isArray(spData.skills)) {
 		const skillsByCategory = spData.skills.reduce((acc, feskillEntry) => {
 			if (!acc[feskillEntry.category]) {
@@ -334,10 +403,11 @@ function generateEsData (unit) {
 /**
  * @param {string} type valid types include bb, sbb, and ubb
  * @param {object} unit
+ * @param {object} spData
  * @returns {import('./utils').WikiDataPair[]}
  */
-function generateBurstDataForBurstType (type, unit) {
-	const burstInfo = getBurstInfo(type, unit);
+function generateBurstDataForBurstType (type, unit, spData) {
+	const burstInfo = getBurstInfo(type, unit, spData);
 	const baseKey = `|${type}`;
 	const result = [
 		[`${baseKey}`, burstInfo.name],
@@ -360,6 +430,11 @@ function generateBurstDataForBurstType (type, unit) {
 			[`${baseKey}multiplier${attackIndexKey}`, attack.multiplier || ''],
 			[`${baseAttackKey}_hpscale`, attack.hpScaled || ''],
 		);
+		if (attack.sourcePath === 'SP') {
+			result.push([`${baseAttackKey}_sp`, true]);
+		} else if (attack.sourcePath === 'ES') {
+			result.push([`${baseAttackKey}_es`, true]);
+		}
 	});
 	return result;
 }
@@ -444,6 +519,7 @@ async function generateEvolutionData (unit) {
  */
 export async function generateUnitTemplate (unit) {
 	const unitRarity = +unit.rarity;
+	const spData = await getSpData(unit);
 	/**
 	 * @type {import('./utils').WikiDataPair}
 	 */
@@ -467,10 +543,10 @@ export async function generateUnitTemplate (unit) {
 		...generateMovementDataForNormalAttacks(unit),
 		...generateLsData(unit),
 		...generateEsData(unit),
-		...generateBurstDataForBurstType('bb', unit),
-		...(unit.sbb ? generateBurstDataForBurstType('sbb', unit) : []),
-		...(unit.ubb ? generateBurstDataForBurstType('ubb', unit) : []),
-		...(await generateSpData(unit)),
+		...generateBurstDataForBurstType('bb', unit, spData),
+		...(unit.sbb ? generateBurstDataForBurstType('sbb', unit, spData) : []),
+		...(unit.ubb ? generateBurstDataForBurstType('ubb', unit, spData) : []),
+		...(await generateSpData(spData)),
 		['|howtoget', ''],
 		['|notes', ''],
 		['|incorrectinfo', ''],
