@@ -6,11 +6,16 @@
 		:sortNames="sortNames"
 	>
 		<template v-slot:result="{ data }">
-			<ul class="item-results-list">
+			<ul class="unit-results-list">
 				<li v-for="entryId in data" :key="getDataKey(entryId)">
 					<list-card
-            style="height: 100%;"
-						:to="getEntryLink(entryId)"
+						v-if="useLinkRedirect"
+						:to="getEntryLink(entryId) || undefined"
+						:entry="filteredDb[entryId]"
+					/>
+					<list-card
+						v-else
+						@click="$emit('select', { id: entryId, entry: filteredDb[entryId] })"
 						:entry="filteredDb[entryId]"
 					/>
 				</li>
@@ -21,21 +26,21 @@
 
 <script>
 import { DATA_MAPPING } from '@/utilities/constants';
-import ListCard from '@/components/BF/Items/ListCard';
-import SearchPageBase from '@/components/BF/SearchPageBase';
+import ListCard from '@/components/BF/Units/ListCard';
+import SearchPageBase from '../SearchPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import getLogger from '@/utilities/Logger';
 
-const ITEM_FIELDS = ['id', 'name', 'thumbnail', 'rarity', 'type', 'desc', 'sphere type', 'raid'];
-const logger = getLogger('ItemSearchPage');
+const UNIT_FIELDS = ['id', 'name', 'guide_id', 'rarity', 'element'];
+const logger = getLogger('UnitPicker');
 export default {
 	components: {
 		ListCard,
 		SearchPageBase,
 	},
 	computed: {
-		sortNames: () => ['Item ID', 'Alphabetical', 'Type', 'Rarity'],
+		sortNames: () => ['Unit ID', 'Alphabetical', 'Elements', 'Guide ID', 'Rarity'],
 	},
 	data () {
 		return {
@@ -44,17 +49,14 @@ export default {
 	},
 	methods: {
 		getDataKey (entry) {
-			return entry; // each entry is an item ID
-		},
-		getEntryLink (entry) {
-			return `${this.$route.path}/${entry}`;
+			return entry; // each entry is a unit ID
 		},
 		getFilteredData (filters, sortOptions) {
 			const server = appLocalStorageStore.serverName;
-			const table = DATA_MAPPING.items.key;
+			const table = DATA_MAPPING.units.key;
 			return bfDatabase.then(worker => {
 				return worker.getFilteredDb({
-					extractedFields: ITEM_FIELDS,
+					extractedFields: UNIT_FIELDS,
 					filters,
 					keysAndDb: true,
 					server,
@@ -63,7 +65,7 @@ export default {
 				}).then(({ db, keys }) => {
 					this.filteredDb = db;
 					logger.debug('result keys', { filters, keys, sortOptions });
-					return keys;
+					return keys.filter(k => k !== '1');
 				});
 			});
 		},
@@ -73,9 +75,19 @@ export default {
 					keys: filteredKeys,
 					server: appLocalStorageStore.serverName,
 					sortOptions,
-					table: DATA_MAPPING.items.key,
+					table: DATA_MAPPING.units.key,
 				});
 			});
+		},
+	},
+	props: {
+		getEntryLink: {
+			default: () => undefined,
+			type: Function,
+		},
+		useLinkRedirect: {
+			default: false,
+			type: Boolean,
 		},
 	},
 };
@@ -84,11 +96,11 @@ export default {
 <style lang="scss">
 @import "@/styles/util-mixins.scss";
 
-ul.item-results-list {
+ul.unit-results-list {
 	@include list-style-reset();
 
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
 	grid-gap: 0.5em;
 }
 </style>

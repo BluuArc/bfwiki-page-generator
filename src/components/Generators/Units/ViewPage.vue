@@ -6,6 +6,13 @@
 		:generateWikiTemplate="getWikiTemplate"
 		:tabConfig="tabConfig"
 	>
+		<template v-slot:templateOptions>
+			<v-flex class="px-3">
+				<v-input>
+					Unit selector here
+				</v-input>
+			</v-flex>
+		</template>
 		<span slot="sp-builder">
 			<promise-wait :promise="unitDataPromise" loadingMessage="Loading unit data...">
 				<template v-slot="{ result }">
