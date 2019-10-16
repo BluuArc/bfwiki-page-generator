@@ -4,6 +4,7 @@
 		:getFilteredData="getFilteredData"
 		:getSortedData="getSortedData"
 		:sortNames="sortNames"
+		:removeTopOffset="removeTopOffset"
 	>
 		<template v-slot:result="{ data }">
 			<ul class="unit-results-list">
@@ -87,6 +88,10 @@ export default {
 		getEntryLink: {
 			default: () => undefined,
 			type: Function,
+		},
+		removeTopOffset: {
+			default: false,
+			type: Boolean,
 		},
 		useLinkRedirect: {
 			default: false,

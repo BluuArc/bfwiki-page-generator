@@ -59,10 +59,12 @@ html.page-html {
 
 	.theme--light {
 		--divider-color: rgba(0, 0, 0, 0.12);
+		--background-color: #fafafa;
 	}
 
 	.theme--dark {
 		--divider-color: rgba(255, 255, 255, 0.12);
+		--background-color: #303030;
 	}
 
 	&.overflow-y-hidden {

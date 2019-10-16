@@ -8,7 +8,9 @@
 	>
 		<template v-slot:templateOptions>
 			<v-flex class="px-3">
-				<unit-selector/>
+				<unit-selector
+					label="Bond Unit"
+				/>
 			</v-flex>
 		</template>
 		<span slot="sp-builder">

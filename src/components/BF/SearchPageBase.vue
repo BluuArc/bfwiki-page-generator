@@ -112,7 +112,7 @@ export default {
 		},
 		searchAreaStyle () {
 			return {
-				top: `${this.$vuetify.application.top}px`,
+				top: `${!this.removeTopOffset ? this.$vuetify.application.top : 0}px`,
 			};
 		},
 	},
@@ -253,6 +253,10 @@ export default {
 				return this.getFilteredData(this.filters, sorts);
 			},
 			type: Function,
+		},
+		removeTopOffset: {
+			default: false,
+			type: Boolean,
 		},
 		sortNames: {
 			default: () => ['ID', 'Alphabetical'],

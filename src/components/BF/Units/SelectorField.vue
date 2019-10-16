@@ -1,7 +1,10 @@
 <template>
 	<v-input
+		v-bind="$attrs"
 		class="unit-selector-field"
 		:value="activeEntryId"
+		:append-icon="appendIcon"
+		@click:append="clearEntry"
 		@click="showUnitPicker = true"
 	>
 		<list-card
@@ -15,8 +18,17 @@
 			hide-overlay
 			transition="dialog-bottom-transition"
 		>
-			<v-card>
-				<picker @select="onSelect"/>
+			<v-card style="background-color: var(--background-color);">
+				<v-toolbar>
+					<v-btn icon @click="showUnitPicker = false" aria-label="Close Unit Picker">
+						<v-icon>fa-times</v-icon>
+					</v-btn>
+					<v-toolbar-title>Select Bond Unit</v-toolbar-title>
+				</v-toolbar>
+				<picker
+					:key="activeEntryId"
+					@select="onSelect"
+				/>
 			</v-card>
 		</v-dialog>
 	</v-input>
@@ -31,6 +43,14 @@ export default {
 		ListCard,
 		Picker,
 	},
+	computed: {
+		appendIcon () {
+			return this.hasEntry ? 'fa-times' : undefined;
+		},
+		hasEntry () {
+			return !!this.activeEntry;
+		},
+	},
 	data () {
 		return {
 			activeEntry: undefined,
@@ -39,10 +59,19 @@ export default {
 		};
 	},
 	methods: {
+		clearEntry () {
+			this.activeEntry = undefined;
+			this.activeEntryId = undefined;
+		},
 		onSelect ({ entry, id }) {
 			this.activeEntry = entry;
 			this.activeEntryId = id;
 			this.showUnitPicker = false;
+		},
+	},
+	watch: {
+		activeEntry (newValue) {
+			this.$emit('input', newValue);
 		},
 	},
 };
