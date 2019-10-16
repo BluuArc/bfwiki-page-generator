@@ -8,9 +8,7 @@
 	>
 		<template v-slot:templateOptions>
 			<v-flex class="px-3">
-				<v-input>
-					Unit selector here
-				</v-input>
+				<unit-selector/>
 			</v-flex>
 		</template>
 		<span slot="sp-builder">
@@ -34,6 +32,7 @@
 import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
 import PromiseWait from '@/components/utilities/PromiseWait';
 import SpBuildView from './SpBuildView';
+import UnitSelector from '@/components/BF/Units/SelectorField';
 import ViewPageBase from '@/components/Generators/ViewPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -48,6 +47,7 @@ export default {
 	components: {
 		PromiseWait,
 		SpBuildView,
+		UnitSelector,
 		ViewPageBase,
 	},
 	computed: {

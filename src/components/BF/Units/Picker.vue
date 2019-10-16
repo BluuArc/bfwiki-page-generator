@@ -15,7 +15,7 @@
 					/>
 					<list-card
 						v-else
-						@click="$emit('select', { id: entryId, entry: filteredDb[entryId] })"
+						@click.native="() => emitSelection(entryId, filteredDb[entryId])"
 						:entry="filteredDb[entryId]"
 					/>
 				</li>
@@ -48,6 +48,9 @@ export default {
 		};
 	},
 	methods: {
+		emitSelection (id, entry) {
+			this.$emit('select', { entry, id });
+		},
 		getDataKey (entry) {
 			return entry; // each entry is a unit ID
 		},
