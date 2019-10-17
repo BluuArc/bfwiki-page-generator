@@ -27,10 +27,9 @@
 
 <script>
 import { DATA_MAPPING } from '@/utilities/constants';
-import ListCard from '@/components/BF/Units/ListCard';
+import ListCard from './ListCard';
+import PickerMixin from '../PickerMixin';
 import SearchPageBase from '../SearchPageBase';
-import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
-import bfDatabase from '@/utilities/BfDatabase/index.client';
 import getLogger from '@/utilities/Logger';
 
 const UNIT_FIELDS = ['id', 'name', 'guide_id', 'rarity', 'element'];
@@ -49,55 +48,28 @@ export default {
 		};
 	},
 	methods: {
-		emitSelection (id, entry) {
-			this.$emit('select', { entry, id });
-		},
 		getDataKey (entry) {
 			return entry; // each entry is a unit ID
 		},
 		getFilteredData (filters, sortOptions) {
-			const server = appLocalStorageStore.serverName;
-			const table = DATA_MAPPING.units.key;
-			return bfDatabase.then(worker => {
-				return worker.getFilteredDb({
-					extractedFields: UNIT_FIELDS,
-					filters,
-					keysAndDb: true,
-					server,
-					sortOptions,
-					table,
-				}).then(({ db, keys }) => {
-					this.filteredDb = db;
-					logger.debug('result keys', { filters, keys, sortOptions });
-					return keys.filter(k => k !== '1');
-				});
-			});
+			return this.getFilteredDataForOptions({
+				extractedFields: UNIT_FIELDS,
+				filters,
+				logger,
+				sortOptions,
+				table: DATA_MAPPING.units.key,
+			}).then(keys => keys.filter(k => k !== '1'));
 		},
 		getSortedData (filteredKeys, sortOptions) {
-			return bfDatabase.then(worker => {
-				return worker.getSortedKeys({
-					keys: filteredKeys,
-					server: appLocalStorageStore.serverName,
-					sortOptions,
-					table: DATA_MAPPING.units.key,
-				});
+			return this.getSortedDataForOptions({
+				filteredKeys,
+				logger,
+				sortOptions,
+				table: DATA_MAPPING.units.key,
 			});
 		},
 	},
-	props: {
-		getEntryLink: {
-			default: () => undefined,
-			type: Function,
-		},
-		removeTopOffset: {
-			default: false,
-			type: Boolean,
-		},
-		useLinkRedirect: {
-			default: false,
-			type: Boolean,
-		},
-	},
+	mixins: [PickerMixin],
 };
 </script>
 
