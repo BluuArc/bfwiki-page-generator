@@ -177,7 +177,6 @@ function getBurstFrameData (burstProp, unit, spData) {
 			});
 
 		const extraAttackInfo = getExtraAttackInfo(unit, burstProp, spData);
-		logger.warn({ extraAttackInfo });
 		result = result.concat(extraAttackInfo.extraAttacks.map(effect => {
 			const frameData = {
 				...extraAttackInfo.frames,

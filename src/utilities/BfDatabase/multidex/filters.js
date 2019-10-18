@@ -99,4 +99,33 @@ function getFilteredDbExtraSkill ({ db, filters }) {
 }
 mappingByType.set(DATA_MAPPING.extraSkills.key, getFilteredDbExtraSkill);
 
+/**
+ * @param {DbFilterFunctionArguments} arg0
+ * @returns {Array<string>}
+ */
+function getFilteredDbBurst ({ db, filters }) {
+	if (typeof filters === 'undefined') {
+		return Object.keys(db);
+	}
+
+	const {
+		keys = Object.keys(db),
+		name = '',
+	} = filters;
+	const names = parseNameQuery(name);
+
+	const fitsQuery = (key) => {
+		const entry = db[key];
+		const name = entry.name.toLowerCase();
+		const description = entry.desc.toLowerCase();
+		const normalizedKey = key.toString().toLowerCase();
+		const fitsNameOrDescription = !name || names.some(n => name.includes(n) || description.includes(n));
+		const fitsKey = !name || names.some(n => normalizedKey.includes(n));
+		return [fitsNameOrDescription || fitsKey].every(v => v);
+	};
+
+	return keys.filter(key => db.hasOwnProperty(key) && fitsQuery(key));
+}
+mappingByType.set(DATA_MAPPING.bursts.key, getFilteredDbBurst);
+
 export default mappingByType;

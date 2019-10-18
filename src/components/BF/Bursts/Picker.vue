@@ -7,7 +7,7 @@
 		:removeTopOffset="removeTopOffset"
 	>
 		<template v-slot:result="{ data }">
-			<ul class="unit-results-list">
+			<ul class="burst-results-list">
 				<li v-for="entryId in data" :key="getDataKey(entryId)">
 					<list-card
 						v-if="useLinkRedirect"
@@ -32,16 +32,16 @@ import PickerMixin from '../PickerMixin';
 import SearchPageBase from '../SearchPageBase';
 import getLogger from '@/utilities/Logger';
 
-const UNIT_FIELDS = ['id', 'name', 'guide_id', 'rarity', 'element'];
-const DATA_TABLE = DATA_MAPPING.units.key;
-const logger = getLogger('UnitPicker');
+const BURST_FIELDS = ['id', 'name', 'desc'];
+const DATA_TABLE = DATA_MAPPING.bursts.key;
+const logger = getLogger('BurstPicker');
 export default {
 	components: {
 		ListCard,
 		SearchPageBase,
 	},
 	computed: {
-		sortNames: () => ['Unit ID', 'Alphabetical', 'Elements', 'Guide ID', 'Rarity'],
+		sortNames: () => ['Burst ID', 'Alphabetical'],
 	},
 	methods: {
 		getDataKey (entry) {
@@ -49,12 +49,12 @@ export default {
 		},
 		getFilteredData (filters, sortOptions) {
 			return this.getFilteredDataForOptions({
-				extractedFields: UNIT_FIELDS,
+				extractedFields: BURST_FIELDS,
 				filters,
 				logger,
 				sortOptions,
 				table: DATA_TABLE,
-			}).then(keys => keys.filter(k => k !== '1'));
+			});
 		},
 		getSortedData (filteredKeys, sortOptions) {
 			return this.getSortedDataForOptions({
@@ -72,11 +72,15 @@ export default {
 <style lang="scss">
 @import "@/styles/util-mixins.scss";
 
-ul.unit-results-list {
+ul.burst-results-list {
 	@include list-style-reset();
 
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
 	grid-gap: 0.5em;
+
+	.burst-list-card {
+		height: 100%;
+	}
 }
 </style>

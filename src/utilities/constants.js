@@ -62,6 +62,10 @@ export const DATA_MAPPING = Object.freeze({
 });
 
 export const EXPECTED_TABLE_MAPPING = Object.freeze({
+	[DATA_MAPPING.bursts.key]: [
+		DATA_MAPPING.bursts.key,
+		DATA_MAPPING.units.key,
+	],
 	[DATA_MAPPING.extraSkills.key]: [
 		DATA_MAPPING.extraSkills.key,
 	],
