@@ -23,7 +23,7 @@
 					<v-btn icon @click="showUnitPicker = false" aria-label="Close Unit Picker">
 						<v-icon>fa-times</v-icon>
 					</v-btn>
-					<v-toolbar-title>Select Bond Unit</v-toolbar-title>
+					<v-toolbar-title>{{ selectDialogTitle }}</v-toolbar-title>
 				</v-toolbar>
 				<picker
 					:key="activeEntryId"
@@ -67,6 +67,12 @@ export default {
 			this.activeEntry = entry;
 			this.activeEntryId = id;
 			this.showUnitPicker = false;
+		},
+	},
+	props: {
+		selectDialogTitle: {
+			default: 'Select Unit',
+			type: String,
 		},
 	},
 	watch: {

@@ -9,6 +9,7 @@
 		<template v-slot:templateOptions>
 			<v-flex class="px-3">
 				<unit-selector
+					selectDialogTitle="Select Bond Unit"
 					label="Bond Unit"
 				/>
 			</v-flex>
