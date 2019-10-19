@@ -118,8 +118,8 @@ function generateDbbData (burst) {
 	const result = [
 		[baseKey, burstInfo.name],
 		[`${baseKey}description`, burstInfo.desc],
-		[`${baseKey}note`, ''],
 		[`${baseKey}type`, burstInfo.type],
+		[`${baseKey}gauge`, 7],
 	];
 	burstInfo.attacks.forEach((attack, index) => {
 		const attackIndexKey = `${index > 0 ? (index + 1) : ''}`;
@@ -141,6 +141,28 @@ function generateDbbData (burst) {
 
 /**
  * @param {object} burst
+ * @returns {import('./utils').WikiDataPair[]}
+ */
+function generateDbbLevelData (burst) {
+	/**
+	 * @type {import('./utils').WikiDataPair}
+	 */
+	const result = [];
+
+	if (burst && Array.isArray(burst.levels)) {
+		burst.levels.map((levelEntry, index) => {
+			const baseKey = `|dbb_level${index + 1}_`;
+			result.push(
+				[`${baseKey}cost`, levelEntry['bc cost']],
+				[`${baseKey}note`, '[Description]\nElemental Synergy Effect: [SynergyDescription]'],
+			);
+		});
+	}
+	return result;
+}
+
+/**
+ * @param {object} burst
  */
 export function generateDbbTemplate (burst) {
 	/**
@@ -148,35 +170,13 @@ export function generateDbbTemplate (burst) {
 	 */
 	const templateData = [
 		...generateDbbData(burst),
-		// ['|dbb', burst.name || ''],
 		['|synergy', 'Twilight'], // TODO
 		['|synergydesc', 'Boosts max HP relative to Rec and raises max HP limit'], // TODO
-		// ['|dbbdescription', burst.desc || ''],
-		// ['|dbbtype', 'Offense'],
-		// ['|dbbhits', '32'],
-		// ['|dbbaoe', 'A'],
-		// ['|dbbdc', '32'],
-		// ['|dbbmultiplier', '2000'],
-		// ['|dbb_hpscale', 'true'],
-		// ['|dbbhits2', '32'],
-		// ['|dbbaoe2', 'A'],
-		// ['|dbbdc2', '32'],
-		// ['|dbbmultiplier2', '2000'],
-		// ['|dbb2_hpscale', 'true'],
-		['|bondunit1', 'Xenon, Son of Elysia'],
-		['|bondunit2', 'Estia, Regalia of Elysia'],
-		['|dbb_level1_cost', '7'],
-		['|dbb_level1_note', '2000% + 2000% * [current HP / max HP] on both attacks, 400% Atk/Def/Rec for 5 turns, 50% OD fill, 500% OD fill rate for 5 turns, 100% damage reduction for 3 turns, 100% DoT mitigation for 3 turns, negates critical and elemental damage for 5 turns, casts 50000 HP Light Barrier, 100% chance of purging LS disable and DoT effects\nElemental Synergy Effect: 30% Rec to HP for 3 turns & raises HP parameter limit to 120000 for 3 turns'],
-		['|dbb_level2_cost', '7'],
-		// ['|dbb_frames', '108, 110, 112, 114, 116, 118, 120, 122, 124, 126, 128, 130, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152, 154'],
-		// ['|dbb_distribute', '4, 4, 4, 4, 4, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4'],
-		// ['|dbb_totaldistr', '100'],
-		// ['|dbb_effectdelay', '1'],
-		// ['|dbb2_frames', '108, 110, 112, 114, 116, 118, 120, 122, 124, 126, 128, 130, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152, 154'],
-		// ['|dbb2_distribute', '4, 4, 4, 4, 4, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4'],
-		// ['|dbb2_totaldistr', '100'],
-		// ['|dbb2_effectdelay', '1'],
+		['|bondunit1', 'Xenon, Son of Elysia'], // TODO
+		['|bondunit2', 'Estia, Regalia of Elysia'], // TODO
+		...generateDbbLevelData(burst),
 		['|trivia', ''],
+		['|errors', ''],
 	];
 	return `{{DBB
 ${generateTemplateBody(templateData)}
