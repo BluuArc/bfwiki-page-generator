@@ -501,7 +501,7 @@ async function generateEvolutionData (unit) {
 			['|evointo', currentEntry.next || ''],
 		);
 		if (currentEntry.mats) {
-			const evoUnits = currentEntry.mats.filter(m => m.type === 'unit').map((entry, i) => [`|evomats${i !== 0 ? (i + 1) : ''}`, entry.id]);
+			const evoUnits = currentEntry.mats.filter(m => m.type === 'unit').map((entry, i) => [`|evomats${i + 1}`, entry.id]);
 			const evoItems = currentEntry.mats.filter(m => m.type === 'item').map((entry, i) => [`|evoitem${i !== 0 ? (i + 1) : ''}`, entry.id]);
 			results.push(
 				['|evozelcost', getNumberOrDefault(currentEntry.amount)],
