@@ -177,7 +177,6 @@ function getBurstFrameData (burstProp, unit, spData) {
 			});
 
 		const extraAttackInfo = getExtraAttackInfo(unit, burstProp, spData);
-		logger.warn({ extraAttackInfo });
 		result = result.concat(extraAttackInfo.extraAttacks.map(effect => {
 			const frameData = {
 				...extraAttackInfo.frames,
@@ -524,6 +523,8 @@ export async function generateUnitTemplate (unit) {
 	 * @type {import('./utils').WikiDataPair}
 	 */
 	const templateData = [
+		['|disam', ''],
+		['|altname', unit.name],
 		['|id', unit.id],
 		['|idalt', ''],
 		['|has_altart', ''],
