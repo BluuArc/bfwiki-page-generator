@@ -1,4 +1,8 @@
 import {
+	DATA_MAPPING,
+	SERVER_NAME_MAPPING,
+} from '@/utilities/constants';
+import {
 	ELEMENT_NAME_MAPPING,
 	MAX_LEVEL_MAPPING,
 	SP_CATEGORY_MAPPING,
@@ -19,7 +23,6 @@ import {
 	getSpDescription,
 	spCodeToIndex,
 } from '@/utilities/bf-core/spEnhancements';
-import { DATA_MAPPING } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import { getEvolutions } from '@/utilities/bf-core/units';
@@ -554,7 +557,8 @@ export async function generateUnitTemplate (unit) {
 		['|addcat', ''],
 		['|addcatname', ''],
 	];
-	return `{{{{#if:{{{1|}}}|UnitProp|Unit}}|prop={{{1|}}}
+	const isEu = appLocalStorageStore.serverName === SERVER_NAME_MAPPING.Europe;
+	return `{{{{#if:{{{1|}}}|UnitProp|${isEu ? 'UnitEU' : 'Unit'}}}|prop={{{1|}}}
 ${generateTemplateBody(templateData)}
 }}`;
 }
