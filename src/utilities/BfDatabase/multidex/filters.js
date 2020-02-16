@@ -58,10 +58,10 @@ function getFilteredDbItem ({ db, filters }) {
 
 	const fitsQuery = (key) => {
 		const entry = db[key];
-		const name = entry.name.toLowerCase();
+		const entryName = entry.name.toLowerCase();
 		const description = entry.desc.toLowerCase();
 		const normalizedKey = key.toString().toLowerCase();
-		const fitsNameOrDescription = !name || names.some(n => name.includes(n) || description.includes(n));
+		const fitsNameOrDescription = !name || names.some(n => entryName.includes(n) || description.includes(n));
 		const fitsKey = !name || names.some(n => normalizedKey.includes(n));
 		return [fitsNameOrDescription || fitsKey].every(v => v);
 	};
@@ -87,10 +87,10 @@ function getFilteredDbExtraSkill ({ db, filters }) {
 
 	const fitsQuery = (key) => {
 		const entry = db[key];
-		const name = entry.name.toLowerCase();
+		const entryName = entry.name.toLowerCase();
 		const description = entry.desc.toLowerCase();
 		const normalizedKey = key.toString().toLowerCase();
-		const fitsNameOrDescription = !name || names.some(n => name.includes(n) || description.includes(n));
+		const fitsNameOrDescription = !name || names.some(n => entryName.includes(n) || description.includes(n));
 		const fitsKey = !name || names.some(n => normalizedKey.includes(n));
 		return [fitsNameOrDescription || fitsKey].every(v => v);
 	};
@@ -116,10 +116,10 @@ function getFilteredDbBurst ({ db, filters }) {
 
 	const fitsQuery = (key) => {
 		const entry = db[key];
-		const name = entry.name.toLowerCase();
+		const entryName = entry.name.toLowerCase();
 		const description = entry.desc.toLowerCase();
 		const normalizedKey = key.toString().toLowerCase();
-		const fitsNameOrDescription = !name || names.some(n => name.includes(n) || description.includes(n));
+		const fitsNameOrDescription = !name || names.some(n => entryName.includes(n) || description.includes(n));
 		const fitsKey = !name || names.some(n => normalizedKey.includes(n));
 		return [fitsNameOrDescription || fitsKey].every(v => v);
 	};
