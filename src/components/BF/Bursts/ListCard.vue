@@ -16,6 +16,11 @@
 </template>
 
 <script>
+const getEmptyBurst = () => ({
+	desc: 'Select a burst',
+	name: 'No burst selected',
+});
+
 export default {
 	computed: {
 		NO_DESCRIPTION_TEXT: () => 'No description',
@@ -27,7 +32,7 @@ export default {
 	},
 	props: {
 		entry: {
-			required: true,
+			default: () => getEmptyBurst(),
 			type: Object,
 		},
 	},
@@ -39,18 +44,12 @@ export default {
 	display: grid;
 	grid-template-columns: 1fr;
 	grid-template-rows: auto 1fr;
-	// grid-template-areas:	"title rarity"
-	// 											"desc desc";
 	grid-row-gap: 0.5em;
+	cursor: pointer;
 
 	.entry-title {
-		// grid-area: title;
 		font-weight: bold;
 	}
-
-	// .entry-description {
-	// 	grid-area: desc;
-	// }
 
 	&:hover {
 		outline: 2px solid grey;

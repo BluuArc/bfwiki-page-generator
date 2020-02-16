@@ -7,12 +7,20 @@
 		:tabConfig="tabConfig"
 	>
 		<template v-slot:templateOptions>
-			<v-flex class="px-3">
-				<unit-selector
-					selectDialogTitle="Select Bond Unit"
-					label="Bond Unit"
-				/>
-			</v-flex>
+			<v-layout column class="px-3">
+				<v-flex>
+					<unit-selector
+						selectDialogTitle="Select Bond Unit"
+						label="Bond Unit"
+					/>
+				</v-flex>
+				<v-flex>
+					<burst-selector
+						selectDialogTitle="Select Dual Brave Burst"
+						label="Dual Brave Burst"
+					/>
+				</v-flex>
+			</v-layout>
 		</template>
 		<span slot="sp-builder">
 			<promise-wait :promise="unitDataPromise" loadingMessage="Loading unit data...">
@@ -33,6 +41,7 @@
 
 <script>
 import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
+import BurstSelector from '@/components/BF/Bursts/SelectorField';
 import PromiseWait from '@/components/utilities/PromiseWait';
 import SpBuildView from './SpBuildView';
 import UnitSelector from '@/components/BF/Units/SelectorField';
@@ -48,6 +57,7 @@ export default {
 		this.$store.commit('setTitleOverride', '');
 	},
 	components: {
+		BurstSelector,
 		PromiseWait,
 		SpBuildView,
 		UnitSelector,
