@@ -6,18 +6,20 @@
 		:generateWikiTemplate="getWikiTemplate"
 		:tabConfig="tabConfig"
 	>
-		<template v-slot:templateOptions>
+		<template v-slot:templateOptions="{ inputChanged }">
 			<v-layout column class="px-3">
 				<v-flex>
 					<unit-selector
 						selectDialogTitle="Select Bond Unit"
 						label="Bond Unit"
+						@input="$e => { bondUnit = $e; inputChanged(); }"
 					/>
 				</v-flex>
 				<v-flex>
 					<burst-selector
 						selectDialogTitle="Select Dual Brave Burst"
 						label="Dual Brave Burst"
+						@input="$e => { bondBurst = $e; inputChanged(); }"
 					/>
 				</v-flex>
 			</v-layout>
@@ -79,6 +81,8 @@ export default {
 	},
 	data () {
 		return {
+			bondBurst: null,
+			bondUnit: null,
 			unitDataPromise: () => Promise.resolve(null),
 			wikiTemplate: 'Loading template...',
 		};
@@ -106,7 +110,7 @@ export default {
 			return Promise.resolve()
 				.then(() => {
 					if (unitData) {
-						return generateUnitTemplate(unitData);
+						return generateUnitTemplate(unitData, this.bondUnit, this.bondBurst && this.bondBurst.id);
 					} else {
 						return `No unit found with ID ${this.entryId}`;
 					}

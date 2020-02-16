@@ -9,11 +9,11 @@ import { generateTemplateBody } from './utils';
  */
 const ELEMENT_PAIR_TO_SYNERGY_NAME_MAPPING = Object.freeze({
 	darkdark: 'Abyss',
+	darkearth: 'Obsidian',
 	darkfire: 'Pyre',
 	darklight: 'Twilight',
 	darkthunder: 'Cyclone',
 	darkwater: 'Miasma',
-	earthdark: 'Obsidian',
 	earthearth: 'Tremor',
 	earthfire: 'Magma',
 	earthlight: 'Prism',
@@ -163,7 +163,7 @@ function getBurstInfo (burst) {
  * @param {object} burst
  * @returns {import('./utils').WikiDataPair[]}
  */
-function generateDbbData (burst) {
+export function generateDbbData (burst) {
 	const burstInfo = getBurstInfo(burst);
 	const baseKey = '|dbb';
 	const result = [
@@ -193,29 +193,27 @@ function generateDbbData (burst) {
 /**
  * @param {string} element1
  * @param {string} element2
- * @returns {import('./utils').WikiDataPair[]}
  */
-function getSynergyData (element1, element2) {
+export function getSynergyData (element1, element2) {
 	const elementPair = element1 < element2 ? `${element1}${element2}` : `${element2}${element1}`;
-	const synergyName = ELEMENT_PAIR_TO_SYNERGY_NAME_MAPPING[elementPair];
-	const synergyDescription = SYNERGY_NAME_TO_DESCRIPTION_MAPPING[synergyName];
-	return [
-		['|synergy', synergyName || ''],
-		['|synergydesc', synergyDescription || ''],
-	];
+	const name = ELEMENT_PAIR_TO_SYNERGY_NAME_MAPPING[elementPair];
+	const description = SYNERGY_NAME_TO_DESCRIPTION_MAPPING[name];
+	return { description, name };
 }
 
 /**
  * @param {object} burst
  */
 export function generateDbbTemplate (burst, unit1, unit2) {
+	const synergyInfo = getSynergyData((unit1 && unit1.element) || '', (unit2 && unit2.element) || '');
 	/**
 	 * @type {import('./utils').WikiDataPair}
 	 */
 	const templateData = [
 		['|unreleased', ''],
 		...generateDbbData(burst),
-		...getSynergyData((unit1 && unit1.element) || '', (unit2 && unit2.element) || ''),
+		['|synergy', synergyInfo.name || ''],
+		['|synergydesc', synergyInfo.description || ''],
 		['|bondunit1', (unit1 && unit1.name) || ''],
 		['|bondunit2', (unit2 && unit2.name) || ''],
 		['|trivia', ''],
