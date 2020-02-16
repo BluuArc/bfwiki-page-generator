@@ -15,12 +15,14 @@
 					<unit-selector
 						selectDialogTitle="Select Bond Unit 1"
 						aria-label="Bond Unit 1"
+						@input="$e => { bondUnit1 = $e; inputChanged(); }"
 					/>
 				</v-flex>
 				<v-flex>
 					<unit-selector
 						selectDialogTitle="Select Bond Unit 2"
 						aria-label="Bond Unit 2"
+						@input="$e => { bondUnit2 = $e; inputChanged(); }"
 					/>
 				</v-flex>
 			</v-layout>
@@ -62,6 +64,8 @@ export default {
 	},
 	data () {
 		return {
+			bondUnit1: null,
+			bondUnit2: null,
 			burstDataPromise: () => Promise.resolve(null),
 			wikiTemplate: 'Loading template...',
 		};
@@ -88,7 +92,11 @@ export default {
 			return Promise.resolve()
 				.then(() => {
 					if (burstData) {
-						return generateDbbTemplate(burstData);
+						logger.debug({
+							bondUnit1: this.bondUnit1,
+							bondUnit2: this.bondUnit2,
+						});
+						return generateDbbTemplate(burstData, this.bondUnit1, this.bondUnit2);
 					} else {
 						return `No burst found with ID ${this.entryId}`;
 					}

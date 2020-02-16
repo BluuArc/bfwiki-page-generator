@@ -5,6 +5,57 @@ import {
 import { generateTemplateBody } from './utils';
 
 /**
+ * @description mapping of elements joined in alphabetical order to DBB synergy name
+ */
+const ELEMENT_PAIR_TO_SYNERGY_NAME_MAPPING = Object.freeze({
+	darkdark: 'Abyss',
+	darkfire: 'Pyre',
+	darklight: 'Twilight',
+	darkthunder: 'Cyclone',
+	darkwater: 'Miasma',
+	earthdark: 'Obsidian',
+	earthearth: 'Tremor',
+	earthfire: 'Magma',
+	earthlight: 'Prism',
+	earththunder: 'Eruption',
+	earthwater: 'Quagmire',
+	firefire: 'Blaze',
+	firelight: 'Nova',
+	firethunder: 'Blast',
+	firewater: 'Steam',
+	lightlight: 'Aurora',
+	lightthunder: 'Radiance',
+	lightwater: 'Mist',
+	thunderthunder: 'Plasma',
+	thunderwater: 'Tempest',
+	waterwater: 'Tsunami',
+});
+
+const SYNERGY_NAME_TO_DESCRIPTION_MAPPING = {
+	Abyss: 'Deals piercing max HP% DoT to single Light foe',
+	Aurora: 'Deals piercing max HP% DoT to single Dark foe',
+	Blast: 'Deals piercing max HP% damage to single foe, raises allies from KO, grants Invincibility but inflicts KO on all allies on effect end (available when foe HP is below certain amount)',
+	Blaze: 'Deals piercing max HP% DoT to single Earth foe',
+	Cyclone: 'Chance to negate KO resistance effects',
+	Eruption: 'Chance to negate Purge effects',
+	Magma: 'Chance to negate BB and OD Drain effects',
+	Miasma: 'Reduces healing effectiveness of single foe',
+	Mist: 'Chance to purge and negate Amnesia effect & reduces BB activation cost',
+	Nova: 'Chance to purge and negate Lock effects',
+	Obsidian: 'Refills consumable items by certain amount (limited activation per battle)',
+	Plasma: 'Deals piercing max HP% DoT to single Water foe',
+	Prism: 'Deals piercing max HP% damage to single foe and boosts offense but self-KO until battle end (available when foe HP is below certain amount)',
+	Pyre: 'Chance to purge and negate Doom and Ennui effects',
+	Quagmire: 'Purges Barrier and Shield effects & activates non-elemental Shield',
+	Radiance: 'Chance to purge and negate HP and Heal reduction effects',
+	Steam: 'Boosts DBB Synergy Shards (available when cooldown count is 0)',
+	Tempest: 'Chance to purge and negate Turn Skip',
+	Tremor: 'Deals piercing max HP% DoT to single Thunder foe',
+	Tsunami: 'Deals piercing max HP% DoT to single Fire foe',
+	Twilight: 'Boosts max HP relative to Rec and raises max HP limit',
+};
+
+/**
  * @typedef WikiDamageFramesEntry
  * @property {string} WikiDamageFramesEntry.distribute
  * @property {string} WikiDamageFramesEntry.effectdelay
@@ -162,18 +213,32 @@ function generateDbbLevelData (burst) {
 }
 
 /**
+ * @param {string} element1
+ * @param {string} element2
+ * @returns {import('./utils').WikiDataPair[]}
+ */
+function getSynergyData (element1, element2) {
+	const elementPair = element1 < element2 ? `${element1}${element2}` : `${element2}${element1}`;
+	const synergyName = ELEMENT_PAIR_TO_SYNERGY_NAME_MAPPING[elementPair];
+	const synergyDescription = SYNERGY_NAME_TO_DESCRIPTION_MAPPING[synergyName];
+	return [
+		['|synergy', synergyName || ''],
+		['|synergydesc', synergyDescription || ''],
+	];
+}
+
+/**
  * @param {object} burst
  */
-export function generateDbbTemplate (burst) {
+export function generateDbbTemplate (burst, unit1, unit2) {
 	/**
 	 * @type {import('./utils').WikiDataPair}
 	 */
 	const templateData = [
 		...generateDbbData(burst),
-		['|synergy', 'Twilight'], // TODO
-		['|synergydesc', 'Boosts max HP relative to Rec and raises max HP limit'], // TODO
-		['|bondunit1', 'Xenon, Son of Elysia'], // TODO
-		['|bondunit2', 'Estia, Regalia of Elysia'], // TODO
+		...getSynergyData((unit1 && unit1.element) || '', (unit2 && unit2.element) || ''),
+		['|bondunit1', (unit1 && unit1.name) || ''],
+		['|bondunit2', (unit2 && unit2.name) || ''],
 		...generateDbbLevelData(burst),
 		['|trivia', ''],
 		['|errors', ''],
