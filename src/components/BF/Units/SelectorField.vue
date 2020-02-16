@@ -18,7 +18,7 @@
 			hide-overlay
 			transition="dialog-bottom-transition"
 		>
-			<v-card style="background-color: var(--background-color);">
+			<v-card class="unit-selector-field--dialog-card" style="background-color: var(--background-color);">
 				<v-toolbar>
 					<v-btn icon @click="showUnitPicker = false" aria-label="Close Unit Picker">
 						<v-icon>fa-times</v-icon>
@@ -87,6 +87,19 @@ export default {
 .unit-selector-field {
 	.v-input__slot > .unit-list-card {
 		width: 100%;
+	}
+}
+
+.unit-selector-field--dialog-card {
+	display: flex;
+	flex-direction: column;
+
+	> .v-toolbar {
+		flex: none;
+	}
+
+	.search-page {
+		flex: 1;
 	}
 }
 </style>

@@ -278,10 +278,8 @@ export default {
 .search-page {
 	width: 100%;
 	height: 100%;
-	display: grid;
-	grid-template-rows: auto 1fr auto;
-	grid-template-columns: 1fr;
-	grid-gap: 0.5em;
+	display: flex;
+	flex-direction: column;
 
 	padding-top: 0.5em;
 
@@ -289,15 +287,19 @@ export default {
 		position: sticky;
 		top: 0;
 		z-index: 1;
+		flex: none;
 	}
 
 	#result-area {
 		max-height: 100%;
+		padding: 0.5em 0;
+		flex: 1;
 	}
 
 	#pagination-area {
 		position: sticky;
 		bottom: 0;
+		flex: none;
 	}
 }
 </style>
