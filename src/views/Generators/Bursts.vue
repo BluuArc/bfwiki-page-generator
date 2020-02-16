@@ -17,5 +17,6 @@ export default {
 	computed: {
 		expectedTables: () => EXPECTED_TABLE_MAPPING[DATA_MAPPING.bursts.key].slice(),
 	},
+	name: 'SearchBursts',
 };
 </script>

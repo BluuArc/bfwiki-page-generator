@@ -67,6 +67,10 @@ import getLogger from '@/utilities/Logger';
 
 const logger = getLogger('SearchPageBase');
 export default {
+	activated () {
+		logger.debug('activated');
+		this.onFilterChange();
+	},
 	components: {
 		PromiseWait,
 		SearchArea,
