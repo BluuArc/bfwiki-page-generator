@@ -191,28 +191,6 @@ function generateDbbData (burst) {
 }
 
 /**
- * @param {object} burst
- * @returns {import('./utils').WikiDataPair[]}
- */
-function generateDbbLevelData (burst) {
-	/**
-	 * @type {import('./utils').WikiDataPair}
-	 */
-	const result = [];
-
-	if (burst && Array.isArray(burst.levels)) {
-		burst.levels.map((levelEntry, index) => {
-			const baseKey = `|dbb_level${index + 1}_`;
-			result.push(
-				[`${baseKey}cost`, levelEntry['bc cost']],
-				[`${baseKey}note`, '[Description]\nElemental Synergy Effect: [SynergyDescription]'],
-			);
-		});
-	}
-	return result;
-}
-
-/**
  * @param {string} element1
  * @param {string} element2
  * @returns {import('./utils').WikiDataPair[]}
@@ -235,11 +213,11 @@ export function generateDbbTemplate (burst, unit1, unit2) {
 	 * @type {import('./utils').WikiDataPair}
 	 */
 	const templateData = [
+		['|unreleased', ''],
 		...generateDbbData(burst),
 		...getSynergyData((unit1 && unit1.element) || '', (unit2 && unit2.element) || ''),
 		['|bondunit1', (unit1 && unit1.name) || ''],
 		['|bondunit2', (unit2 && unit2.name) || ''],
-		...generateDbbLevelData(burst),
 		['|trivia', ''],
 		['|errors', ''],
 	];
