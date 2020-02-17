@@ -3,7 +3,7 @@ import {
 	generateTemplateBody,
 } from './utils';
 import { DATA_MAPPING } from '@/utilities/constants';
-import { ITEM_TYPES_MAPPING } from '@/utilities/bf-core/constants';
+import { ItemType } from '@bluuarc/bfmt-utilities/dist/datamine-types';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import getLogger from '@/utilities/Logger';
@@ -12,7 +12,7 @@ const WIKI_TABLE_CHUNK_SIZE = 70;
 const logger = getLogger('generateItemTemplate');
 
 /**
- * @param {object} item
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItem} item
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateFlavorText (item) {
@@ -39,7 +39,7 @@ async function generateFlavorText (item) {
 }
 
 /**
- * @param {Array<{ count: number, id: number }>} materials
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItemRecipeMaterial[]} materials
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateCraftMats (materials) {
@@ -61,12 +61,12 @@ async function generateCraftMats (materials) {
 }
 
 /**
- * @param {object} item
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItem} item
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateBaseTotalMats (item) {
 	/**
-	 * @type {Array<{ name: string, id: string|number, count: number }>}
+	 * @type {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItemRecipeMaterial[]}
 	 */
 	const baseMaterials = await bfDatabase.then(worker => worker.getBaseMaterialsOfItem({
 		id: item.id,
@@ -91,12 +91,12 @@ async function generateBaseTotalMats (item) {
 }
 
 /**
- * @param {object} item
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItem} item
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateCraftInto (item) {
 	/**
-	 * @type {Array<{ name: string, id: string|number, count: number }>}
+	 * @type {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItemRecipeMaterial[]}
 	 */
 	const requiringItems = await bfDatabase.then(worker => worker.getImmediateUsageForItem({
 		id: item.id,
@@ -117,7 +117,7 @@ async function generateCraftInto (item) {
 }
 
 /**
- * @param {object} item
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItem|import('@bluuarc/bfmt-utilities/dist/datamine-types').ISphere} item
  */
 export async function generateItemTemplate (item) {
 	/**
@@ -138,7 +138,7 @@ export async function generateItemTemplate (item) {
 		['|sellValue', item.sell_price],
 		['|esunit', ''],
 		...(await generateCraftMats(item.recipe && item.recipe.materials)),
-		['|carryLimit', (item.type !== ITEM_TYPES_MAPPING.SPHERE && item.max_stack) || ''],
+		['|carryLimit', (item.type !== ItemType.Sphere && item.max_stack) || ''],
 		...(await generateCraftInto(item)),
 		['|raidonly', item.raid || ''],
 		['|howToObtain', ''],
