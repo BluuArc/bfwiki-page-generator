@@ -3,9 +3,7 @@
 		<top-app-bar @toggledrawer="showDrawer = !showDrawer"/>
 		<left-nav-drawer v-model="showDrawer"/>
 		<v-content>
-			<keep-alive :include="/^Search/">
-				<router-view/>
-			</keep-alive>
+			<router-view/>
 		</v-content>
 		<site-trackers/>
 	</v-app>
