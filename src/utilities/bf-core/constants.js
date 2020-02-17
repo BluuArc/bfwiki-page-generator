@@ -1,3 +1,5 @@
+import { SpCategoryName } from '@bluuarc/bfmt-utilities/dist/datamine-types';
+
 export const ELEMENT_NAME_MAPPING = Object.freeze({
 	dark: 'Dark',
 	earth: 'Earth',
@@ -16,18 +18,19 @@ export const MAX_LEVEL_MAPPING = {
 	8: 150,
 };
 
+// TODO: replace with bfmt-utilities method
 export const SP_CATEGORY_MAPPING = Object.freeze({
-	1: 'Parameter Boost',
-	2: 'Spark',
-	3: 'Critical Hits',
-	4: 'Attack Boost',
-	5: 'BB Gauge',
-	6: 'HP Recovery',
-	7: 'Drops',
-	8: 'Ailment Resistance',
-	9: 'Ailment Infliction',
-	10: 'Damage Reduction', // eslint-disable-line sort-keys
-	11: 'Special',
+	1: SpCategoryName['Parameter Boost'],
+	2: SpCategoryName.Spark,
+	3: SpCategoryName['Critical Hits'],
+	4: SpCategoryName['Attack Boost'],
+	5: SpCategoryName['BB Gauge'],
+	6: SpCategoryName['HP Recovery'],
+	7: SpCategoryName.Drops,
+	8: SpCategoryName['Ailment Resistance'],
+	9: SpCategoryName['Ailment Infliction'],
+	10: SpCategoryName['Damage Reduction'], // eslint-disable-line sort-keys
+	11: SpCategoryName.Special,
 });
 
 export const ITEM_TYPES_MAPPING = Object.freeze({
