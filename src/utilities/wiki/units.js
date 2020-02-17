@@ -1,4 +1,8 @@
 import {
+	DATA_MAPPING,
+	SERVER_NAME_MAPPING,
+} from '@/utilities/constants';
+import {
 	ELEMENT_NAME_MAPPING,
 	MAX_LEVEL_MAPPING,
 	SP_CATEGORY_MAPPING,
@@ -24,7 +28,6 @@ import {
 	getSpDescription,
 	spCodeToIndex,
 } from '@/utilities/bf-core/spEnhancements';
-import { DATA_MAPPING } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import { getEvolutions } from '@/utilities/bf-core/units';
@@ -491,7 +494,7 @@ async function generateEvolutionData (unit) {
 			['|evointo', currentEntry.next || ''],
 		);
 		if (currentEntry.mats) {
-			const evoUnits = currentEntry.mats.filter(m => m.type === 'unit').map((entry, i) => [`|evomats${i !== 0 ? (i + 1) : ''}`, entry.id]);
+			const evoUnits = currentEntry.mats.filter(m => m.type === 'unit').map((entry, i) => [`|evomats${i + 1}`, entry.id]);
 			const evoItems = currentEntry.mats.filter(m => m.type === 'item').map((entry, i) => [`|evoitem${i !== 0 ? (i + 1) : ''}`, entry.id]);
 			results.push(
 				['|evozelcost', getNumberOrDefault(currentEntry.amount)],
@@ -548,6 +551,8 @@ export async function generateUnitTemplate (unit, bondUnit, bondBurstId) {
 	 * @type {import('./utils').WikiDataPair}
 	 */
 	const templateData = [
+		['|disam', ''],
+		['|altname', unit.name],
 		['|id', unit.id],
 		['|idalt', ''],
 		['|has_altart', ''],
@@ -578,7 +583,8 @@ export async function generateUnitTemplate (unit, bondUnit, bondBurstId) {
 		['|addcat', ''],
 		['|addcatname', ''],
 	];
-	return `{{{{#if:{{{1|}}}|UnitProp|Unit}}|prop={{{1|}}}
+	const isEu = appLocalStorageStore.serverName === SERVER_NAME_MAPPING.Europe;
+	return `{{{{#if:{{{1|}}}|UnitProp|${isEu ? 'UnitEU' : 'Unit'}}}|prop={{{1|}}}
 ${generateTemplateBody(templateData)}
 }}`;
 }
