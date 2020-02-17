@@ -5,7 +5,7 @@ import {
 
 /**
  * @desc Get the name of the unit in the format of `[guide_id]: [name] ([id])`
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  */
 export function getFullName (unit = {}) {
 	const guideId = unit.guide_id || 0;
