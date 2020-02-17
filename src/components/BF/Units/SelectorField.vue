@@ -8,6 +8,8 @@
 		@click="showUnitPicker = true"
 	>
 		<list-card
+			:raised="!$attrs.disabled"
+			elevation="4"
 			:key="activeEntryId"
 			class="my-1"
 			:entry="activeEntry"

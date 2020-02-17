@@ -64,7 +64,15 @@ html.page-html {
 
 	.theme--dark {
 		--divider-color: rgba(255, 255, 255, 0.12);
-		--background-color: #303030;
+		--background-color: #212121;
+
+		&.v-card, .v-tabs > .v-tabs-bar, .v-tabs-items {
+			background: #424242;
+		}
+	}
+
+	.v-application {
+		background: var(--background-color);
 	}
 
 	&.overflow-y-hidden {
