@@ -2,105 +2,48 @@ import {
 	BURST_TYPES,
 	TARGET_AREA_MAPPING,
 } from './constants';
-
-const PROC_PASSIVE_METADATA = require('@/assets/passive-proc-metadata.json');
-const ATTACKING_PROCS = Object.keys(PROC_PASSIVE_METADATA.proc).filter(id => PROC_PASSIVE_METADATA.proc[id].Type === 'Attack');
+import {
+	getEffectId,
+	isAttackingProcId,
+} from '@bluuarc/bfmt-utilities/dist/buffs';
+import {
+	getExtraAttackDamageFramesEntry,
+	getLevelEntryForBurst,
+} from '@bluuarc/bfmt-utilities/dist/bursts';
 
 /**
- * @param {Array<object>} damageFrames
- * @returns {Array<object>}
+ * @typedef {import('@bluuarc/bfmt-utilities/dist/datamine-types').ProcEffect | import('@bluuarc/bfmt-utilities/dist/datamine-types').PassiveEffect} ProcPassiveEffect
+ */
+
+/**
+ * @param {Array<import('@bluuarc/bfmt-utilities/dist/datamine-types').IBurstDamageFramesEntry>} damageFrames
  */
 export function extractAttackingDamageFrames (damageFrames) {
 	return damageFrames
 		.map((frame, i) => ({ ...frame, frameIndex: i }))
-		.filter(frame => {
-			const procId = !isNaN(frame['proc id']) ? frame['proc id'] : frame['unknown proc id'];
-			return ATTACKING_PROCS.includes(procId);
-		});
+		.filter(frame => isAttackingProcId(getEffectId(frame)));
 }
 
 /**
- * @param {object} burst
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst} burst
  * @param {number?} level
- * @returns {{ 'bc cost': number, effects: Array }}
  */
 export function getBurstLevelEntry (burst, level) {
-	/**
-	 * @type {Array}
-	 */
-	const burstEffectsByLevel = Array.isArray(burst.levels) ? burst.levels : [];
-	// default to last level
-	const levelIndex = (level !== undefined) ? level : burstEffectsByLevel.length - 1;
-	return burstEffectsByLevel[levelIndex];
-}
-
-function getHitCountData (burst, filterFn = (f) => ATTACKING_PROCS.includes(f.id)) {
-	if (typeof burst !== 'object' || Object.keys(burst).length === 0) {
-		return [];
-	}
-	const endLevel = getBurstLevelEntry(burst);
-	return burst['damage frames']
-		.map((f, i) => {
-			const effectData = endLevel.effects[i];
-			return {
-				delay: effectData['effect delay time(ms)/frame'],
-				effects: effectData,
-				frames: f,
-				id: (f['proc id'] || f['unknown proc id'] || f.id || '').toString(),
-				target: TARGET_AREA_MAPPING[effectData['random attack'] ? 'random' : effectData['target area']],
-			};
-		}).filter(filterFn);
+	return getLevelEntryForBurst(burst, level);
 }
 
 /**
- * @param {object} burst
- * @returns {{ 'frame times': number[], 'hit dmg% distribution': number[], hits: number, 'hit dmg% distribution (total)': number }}
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst} burst
+ * @returns {import('@bluuarc/bfmt-utilities/dist/datamine-types').IDamageFramesEntry}
  */
 export function getExtraAttackFrames (burst) {
-	const attackFrameSets = getHitCountData(burst).map(d => d.frames);
-	const healFrameSets = getHitCountData(burst, e => e.id === '2').map(d => d.frames);
-
-	let frameTimes = [];
-	let hitDmgDistribution = [];
-
-	// gather frame data
-	attackFrameSets.forEach((frameSet, i) => {
-		const keepFirstFrame = i === 0;
-		frameTimes = frameTimes.concat(frameSet['frame times'].slice(keepFirstFrame ? 0 : 1));
-		hitDmgDistribution = hitDmgDistribution.concat(frameSet['hit dmg% distribution'].slice(keepFirstFrame ? 0 : 1));
-	});
-
-	healFrameSets.forEach((frameSet, i) => {
-		const keepFirstFrame = i === 0 && attackFrameSets.length === 0;
-		frameTimes = frameTimes.concat(frameSet['frame times'].slice(keepFirstFrame ? 0 : 1));
-		hitDmgDistribution = hitDmgDistribution.concat(frameSet['hit dmg% distribution'].slice(keepFirstFrame ? 0 : 1));
-	});
-
-	// sort frames by frame time
-	/**
-	 * @type {{ dmg: number, time: number }[]}
-	 */
-	const unifiedFrames = [];
-	frameTimes.forEach((time, i) => {
-		unifiedFrames.push({
-			dmg: hitDmgDistribution[i],
-			time,
-		});
-	});
-
-	const frames = {
-		'frame times': [],
-		'hit dmg% distribution': [],
-	};
-	unifiedFrames.sort((a, b) => a.time - b.time).forEach(({ time, dmg }) => {
-		frames['frame times'].push(time);
-		frames['hit dmg% distribution'].push(dmg);
-	});
-	frames.hits = frames['frame times'].length;
-	frames['hit dmg% distribution (total)'] = unifiedFrames.reduce((acc, { dmg }) => acc + dmg, 0);
-	return frames;
+	return getExtraAttackDamageFramesEntry(burst['damage frames']);
 }
 
+/**
+ * @param {ProcPassiveEffect} effect
+ * @param {string} sourcePath
+ */
 function extractBuffsFromTriggeredEffect (effect = {}, sourcePath) {
 	return Array.isArray(effect['triggered effect'])
 		? Array.from(effect['triggered effect']).map(e => {
@@ -116,6 +59,11 @@ function extractBuffsFromTriggeredEffect (effect = {}, sourcePath) {
 		: [];
 }
 
+/**
+ * @param {ProcPassiveEffect[]} effects
+ * @param {string} sourcePath
+ * @param {function} getDamageFramesForIndex
+ */
 export function getAttackingEffectsForEffectsList (effects = [], sourcePath, getDamageFramesForIndex = () => ({ hits: 0 })) {
 	const procTransformer = (e, i) => ({
 		'effect delay time(ms)/frame': e['effect delay time(ms)/frame'],
@@ -131,7 +79,7 @@ export function getAttackingEffectsForEffectsList (effects = [], sourcePath, get
 			return acc;
 		}, {})),
 	});
-	const attackFilter = e => ATTACKING_PROCS.includes(e.id);
+	const attackFilter = e => isAttackingProcId(e.id);
 	const effectsWithIndices = effects.map((e, i) => ({ ...e, originalIndex: i }));
 	const triggeredEffects = effectsWithIndices.filter(e => e['triggered effect']);
 
