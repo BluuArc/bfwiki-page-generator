@@ -1,3 +1,8 @@
+import {
+	getUnitImageFileNames,
+	getUnitImageUrl,
+} from '@bluuarc/bfmt-utilities/dist/units';
+
 /**
  * @desc Get the name of the unit in the format of `[guide_id]: [name] ([id])`
  * @param {object} unit
@@ -15,13 +20,13 @@ export function getFullName (unit = {}) {
  * @param {string?} suffix
  */
 export function getImageUrls (id, baseContentUrl, suffix = '') {
-	const baseUrl = `${baseContentUrl}/unit/img`;
+	const fileNames = getUnitImageFileNames(id, suffix);
 
 	return {
-		anime: `${baseUrl}/unit_thum_${id}${suffix}.png`,
-		ills_battle: `${baseUrl}/unit_ills_battle_${id}${suffix}.png`,
-		ills_full: `${baseUrl}/unit_ills_full_${id}${suffix}.png`,
-		ills_thum: `${baseUrl}/unit_ills_thum_${id}${suffix}.png`,
+		anime: getUnitImageUrl(baseContentUrl, fileNames.spritesheet),
+		ills_battle: getUnitImageUrl(baseContentUrl, fileNames.battleAvatar),
+		ills_full: getUnitImageUrl(baseContentUrl, fileNames.fullIllustration),
+		ills_thum: getUnitImageUrl(baseContentUrl, fileNames.guideAvatar),
 	};
 }
 
