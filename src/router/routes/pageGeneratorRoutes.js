@@ -55,6 +55,22 @@ const pageGeneratorRoutes = [
 		name: 'Extra Skill Generator - Loading...',
 		path: '/generators/extra-skills/:id',
 	},
+	{
+		component: () => import(/* webpackChunkName: "generators" */ '@/views/Generators/Bursts.vue'),
+		listConfig: {
+			icon: 'fa-skull',
+		},
+		name: 'Burst Generator',
+		path: '/generators/bursts',
+	},
+	{
+		component: () => import(/* webpackChunkName: "generators" */ '@/views/Generators/BurstsView.vue'),
+		listConfig: {
+			hidden: true,
+		},
+		name: 'Burst Generator - Loading...',
+		path: '/generators/bursts/:id',
+	},
 ];
 
 export default pageGeneratorRoutes.map(r => { r.listConfig.parent = 'Page Generators'; return r; });

@@ -14,6 +14,11 @@ import {
 	getExtraAttackFrames,
 } from '@/utilities/bf-core/bursts';
 import {
+	generateDbbData,
+	getDamageFrames,
+	getSynergyData,
+} from './bursts';
+import {
 	generateRarityString,
 	generateTemplateBody,
 } from './utils';
@@ -75,32 +80,6 @@ function getMoveSpeedForProperty (prop, unit) {
 		result.movespeed = movementEntry['move speed'];
 		result.movetype = movementEntry['move type'];
 		result.speedtype = movementEntry['move speed type'];
-	}
-	return result;
-}
-
-/**
- * @param {object} damageFramesEntry
- * @returns {WikiDamageFramesEntry}
- */
-function getDamageFrames (damageFramesEntry) {
-	const result = {
-		distribute: '',
-		effectdelay: '',
-		frameIndex: -1,
-		frames: '',
-		hits: 0,
-		totaldistr: '',
-	};
-	if (damageFramesEntry) {
-		result.distribute = Array.from(damageFramesEntry['hit dmg% distribution']).join(', ');
-		result.frameIndex = damageFramesEntry.frameIndex;
-		result.frames = Array.from(damageFramesEntry['frame times']).join(', ');
-		result.totaldistr = damageFramesEntry['hit dmg% distribution (total)'];
-		result.hits = damageFramesEntry.hits;
-		if (damageFramesEntry['effect delay time(ms)/frame']) {
-			result.effectdelay = damageFramesEntry['effect delay time(ms)/frame'].split('/')[1];
-		}
 	}
 	return result;
 }
@@ -269,6 +248,18 @@ function getSpData (unit) {
 		id: unit.id,
 		server: appLocalStorageStore.serverName,
 		table: DATA_MAPPING.spEnhancements.key,
+	}));
+}
+
+/**
+ * @param {string|number} id
+ * @returns {Promise<object>}
+ */
+function getBurstData (id) {
+	return bfDatabase.then(worker => worker.getById({
+		id,
+		server: appLocalStorageStore.serverName,
+		table: DATA_MAPPING.bursts.key,
 	}));
 }
 
@@ -517,11 +508,45 @@ async function generateEvolutionData (unit) {
 }
 
 /**
- * @param {object} unit
+ * @param {object} primaryUnit
+ * @param {object} bondUnit
+ * @param {object} bondBurst
+ * @returns {import('./utils').WikiDataPair[]}
  */
-export async function generateUnitTemplate (unit) {
+function generateBondData (primaryUnit, bondUnit, bondBurst) {
+	let results = [];
+	if (primaryUnit && bondUnit) {
+		const synergyData = getSynergyData(primaryUnit.element, bondUnit.element);
+		results = [
+			['|synergy', synergyData.name || ''],
+			['|bondunit', bondUnit.name || ''],
+		];
+	}
+	if (bondBurst) {
+		const keySufficesToExclude = ['_frames', '_distribute', '_totaldistr', '_effectdelay'];
+		/**
+		 * @param {import('./utils').WikiDataPair} param
+		 * @returns {boolean}
+		 */
+		const includeWikiDataPair = ([wikiKey]) => !keySufficesToExclude.some(suffix => wikiKey.endsWith(suffix));
+		const dbbData = generateDbbData(bondBurst).filter(includeWikiDataPair);
+		results = results.concat(dbbData);
+	}
+	return results;
+}
+
+/**
+ * @param {object} unit
+ * @param {object} bondUnit
+ * @param {string|number} bondBurstId
+ */
+export async function generateUnitTemplate (unit, bondUnit, bondBurstId) {
 	const unitRarity = +unit.rarity;
 	const spData = await getSpData(unit);
+	let bondBurst;
+	if (bondBurstId) {
+		bondBurst = await getBurstData(bondBurstId);
+	}
 	/**
 	 * @type {import('./utils').WikiDataPair}
 	 */
@@ -550,6 +575,7 @@ export async function generateUnitTemplate (unit) {
 		...generateBurstDataForBurstType('bb', unit, spData),
 		...(unit.sbb ? generateBurstDataForBurstType('sbb', unit, spData) : []),
 		...(unit.ubb ? generateBurstDataForBurstType('ubb', unit, spData) : []),
+		...generateBondData(unit, bondUnit, bondBurst),
 		...(await generateSpData(spData)),
 		['|howtoget', ''],
 		['|notes', ''],

@@ -1,16 +1,16 @@
 <template>
-	<unit-picker
+	<burst-picker
 		:useLinkRedirect="true"
 		:getEntryLink="getEntryLink"
 	/>
 </template>
 
 <script>
-import UnitPicker from '@/components/BF/Units/Picker';
+import BurstPicker from '@/components/BF/Bursts/Picker';
 
 export default {
 	components: {
-		UnitPicker,
+		BurstPicker,
 	},
 	methods: {
 		getEntryLink (entry) {

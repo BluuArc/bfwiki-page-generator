@@ -24,5 +24,6 @@ export default {
 			return tables;
 		},
 	},
+	name: 'SearchItems',
 };
 </script>

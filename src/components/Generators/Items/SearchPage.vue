@@ -22,7 +22,7 @@
 <script>
 import { DATA_MAPPING } from '@/utilities/constants';
 import ListCard from '@/components/BF/Items/ListCard';
-import SearchPageBase from '../SearchPageBase';
+import SearchPageBase from '@/components/BF/SearchPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import getLogger from '@/utilities/Logger';

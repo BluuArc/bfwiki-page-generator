@@ -17,6 +17,23 @@
 import { DEFAULT_CONTENT_URLS } from '@/utilities/constants';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import { getImageUrls } from '@/utilities/bf-core/units';
+
+const getEmptyUnit = () => ({
+	element: null,
+	empty: true,
+	guide_id: 0,
+	id: 0,
+	name: 'Empty',
+	rarity: 0,
+});
+
+const UNIT_FRAME_URLS = Object.freeze({
+	COMMON: require('@/assets/question_frame_1.png'),
+	MEGA_RARE: require('@/assets/question_frame_4.png'),
+	RARE: require('@/assets/question_frame_2.png'),
+	SUPER_RARE: require('@/assets/question_frame_3.png'),
+});
+
 export default {
 	computed: {
 		cardClass () {
@@ -38,7 +55,8 @@ export default {
 		imageUrl () {
 			const server = appLocalStorageStore.serverName;
 			const baseUrl = appLocalStorageStore.getUrlForServer(server) || DEFAULT_CONTENT_URLS[server];
-			return getImageUrls(this.entryId, baseUrl).ills_thum;
+			const { entryId } = this;
+			return entryId > 0 ? getImageUrls(entryId, baseUrl).ills_thum : this.getUnitFrameUrlForRarity(this.rarity);
 		},
 		name () {
 			return `${this.entry.name} (${this.entryId})`;
@@ -47,9 +65,25 @@ export default {
 			return this.entry.rarity;
 		},
 	},
+	methods: {
+		getUnitFrameUrlForRarity (rarity) {
+			const numericalRarity = +rarity;
+			let frameUrl;
+			if (numericalRarity >= 5) {
+				frameUrl = UNIT_FRAME_URLS.MEGA_RARE;
+			} else if (numericalRarity >= 4) {
+				frameUrl = UNIT_FRAME_URLS.SUPER_RARE;
+			} else if (numericalRarity >= 3) {
+				frameUrl = UNIT_FRAME_URLS.RARE;
+			} else {
+				frameUrl = UNIT_FRAME_URLS.COMMON;
+			}
+			return frameUrl;
+		},
+	},
 	props: {
 		entry: {
-			required: true,
+			default: () => getEmptyUnit(),
 			type: Object,
 		},
 	},
@@ -64,6 +98,7 @@ export default {
 	grid-template-areas:	"img title"
 												"img details";
 	grid-column-gap: 0.5em;
+	cursor: pointer;
 
 	.unit-image {
 		grid-area: img;

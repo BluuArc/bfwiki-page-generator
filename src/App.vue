@@ -3,7 +3,9 @@
 		<top-app-bar @toggledrawer="showDrawer = !showDrawer"/>
 		<left-nav-drawer v-model="showDrawer"/>
 		<v-content>
-			<router-view/>
+			<keep-alive :include="/^Search/">
+				<router-view/>
+			</keep-alive>
 		</v-content>
 		<site-trackers/>
 	</v-app>
@@ -59,10 +61,12 @@ html.page-html {
 
 	.theme--light {
 		--divider-color: rgba(0, 0, 0, 0.12);
+		--background-color: #fafafa;
 	}
 
 	.theme--dark {
 		--divider-color: rgba(255, 255, 255, 0.12);
+		--background-color: #303030;
 	}
 
 	&.overflow-y-hidden {

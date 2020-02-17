@@ -6,6 +6,24 @@
 		:generateWikiTemplate="getWikiTemplate"
 		:tabConfig="tabConfig"
 	>
+		<template v-slot:templateOptions="{ inputChanged }">
+			<v-layout column class="px-3">
+				<v-flex>
+					<unit-selector
+						selectDialogTitle="Select Bond Unit"
+						label="Bond Unit"
+						@input="$e => { bondUnit = $e; inputChanged(); }"
+					/>
+				</v-flex>
+				<v-flex>
+					<burst-selector
+						selectDialogTitle="Select Dual Brave Burst"
+						label="Dual Brave Burst"
+						@input="$e => { bondBurst = $e; inputChanged(); }"
+					/>
+				</v-flex>
+			</v-layout>
+		</template>
 		<span slot="sp-builder">
 			<promise-wait :promise="unitDataPromise" loadingMessage="Loading unit data...">
 				<template v-slot="{ result }">
@@ -25,8 +43,10 @@
 
 <script>
 import { DATA_MAPPING, DEFAULT_TAB_NAMES } from '@/utilities/constants';
+import BurstSelector from '@/components/BF/Bursts/SelectorField';
 import PromiseWait from '@/components/utilities/PromiseWait';
 import SpBuildView from './SpBuildView';
+import UnitSelector from '@/components/BF/Units/SelectorField';
 import ViewPageBase from '@/components/Generators/ViewPageBase';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -39,8 +59,10 @@ export default {
 		this.$store.commit('setTitleOverride', '');
 	},
 	components: {
+		BurstSelector,
 		PromiseWait,
 		SpBuildView,
+		UnitSelector,
 		ViewPageBase,
 	},
 	computed: {
@@ -59,6 +81,8 @@ export default {
 	},
 	data () {
 		return {
+			bondBurst: null,
+			bondUnit: null,
 			unitDataPromise: () => Promise.resolve(null),
 			wikiTemplate: 'Loading template...',
 		};
@@ -86,7 +110,7 @@ export default {
 			return Promise.resolve()
 				.then(() => {
 					if (unitData) {
-						return generateUnitTemplate(unitData);
+						return generateUnitTemplate(unitData, this.bondUnit, this.bondBurst && this.bondBurst.id);
 					} else {
 						return `No unit found with ID ${this.entryId}`;
 					}

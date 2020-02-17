@@ -1,22 +1,20 @@
 <template>
 	<table-checker :expectedTables="expectedTables" style="height: 100%;">
-		<search-page/>
+		<view-page/>
 	</table-checker>
 </template>
 
 <script>
 import { DATA_MAPPING, EXPECTED_TABLE_MAPPING } from '@/utilities/constants';
-import SearchPage from '@/components/Generators/ExtraSkills/SearchPage';
 import TableChecker from '@/components/utilities/TableChecker';
-
+import ViewPage from '@/components/Generators/Bursts/ViewPage';
 export default {
 	components: {
-		SearchPage,
 		TableChecker,
+		ViewPage,
 	},
 	computed: {
-		expectedTables: () => EXPECTED_TABLE_MAPPING[DATA_MAPPING.extraSkills.key].slice(),
+		expectedTables: () => EXPECTED_TABLE_MAPPING[DATA_MAPPING.bursts.key].slice(),
 	},
-	name: 'SearchExtraSkills',
 };
 </script>
