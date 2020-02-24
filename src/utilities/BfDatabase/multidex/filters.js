@@ -29,6 +29,9 @@ function getFilteredDbUnit ({ db, filters }) {
 	const names = parseNameQuery(name);
 
 	const fitsQuery = (key) => {
+		/**
+		 * @type {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit}
+		 */
 		const entry = db[key];
 		const fullName = getFullName(entry).toLowerCase();
 		const normalizedKey = key.toString().toLowerCase();
@@ -57,6 +60,9 @@ function getFilteredDbItem ({ db, filters }) {
 	const names = parseNameQuery(name);
 
 	const fitsQuery = (key) => {
+		/**
+		 * @type {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItem}
+		 */
 		const entry = db[key];
 		const entryName = entry.name.toLowerCase();
 		const description = entry.desc.toLowerCase();
@@ -86,6 +92,9 @@ function getFilteredDbExtraSkill ({ db, filters }) {
 	const names = parseNameQuery(name);
 
 	const fitsQuery = (key) => {
+		/**
+		 * @type {import('@bluuarc/bfmt-utilities/dist/datamine-types').IExtraSkill}
+		 */
 		const entry = db[key];
 		const entryName = entry.name.toLowerCase();
 		const description = entry.desc.toLowerCase();
@@ -115,6 +124,9 @@ function getFilteredDbBurst ({ db, filters }) {
 	const names = parseNameQuery(name);
 
 	const fitsQuery = (key) => {
+		/**
+		 * @type {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst}
+		 */
 		const entry = db[key];
 		const entryName = entry.name.toLowerCase();
 		const description = entry.desc.toLowerCase();
