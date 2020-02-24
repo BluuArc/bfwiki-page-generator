@@ -5,7 +5,6 @@ import {
 import {
 	ELEMENT_NAME_MAPPING,
 	MAX_LEVEL_MAPPING,
-	SP_CATEGORY_MAPPING,
 } from '@/utilities/bf-core/constants';
 import {
 	extractAttackingDamageFrames,
@@ -35,6 +34,7 @@ import { getEffectId } from '@bluuarc/bfmt-utilities/dist/buffs';
 import { getEvolutions } from '@/utilities/bf-core/units';
 import getLogger from '@/utilities/Logger';
 import { getNumberOrDefault } from '@/utilities/utils';
+import { getSpCategoryName } from '@bluuarc/bfmt-utilities/dist/sp-enhancements';
 
 const logger = getLogger('generateUnitTemplate');
 
@@ -294,7 +294,7 @@ async function generateSpData (spData) {
 			.forEach((categoryKey, i) => {
 				const entries = skillsByCategory[categoryKey];
 				const baseKey = `|omniskill${i + 1}_`;
-				result.push([`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]]);
+				result.push([`${baseKey}cat`, getSpCategoryName(categoryKey)]);
 				entries.forEach((feskillEntry, i) => {
 					const baseSkillKey = `${baseKey}${i + 1}_`;
 					const hasDependency = !!feskillEntry.dependency;
