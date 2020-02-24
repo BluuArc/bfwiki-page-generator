@@ -12,7 +12,7 @@
 
 <script>
 import GenericSpriteIcon from '@/components/utilities/GenericSpriteIcon';
-import { SPHERE_TYPE_MAPPING } from '@/utilities/bf-core/constants';
+import { SphereTypeId } from '@bluuarc/bfmt-utilities/dist/datamine-types';
 
 export default {
 	components: {
@@ -29,7 +29,7 @@ export default {
 			return require('@/assets/sphere_icon.png');
 		},
 		sphereCategory () {
-			return SPHERE_TYPE_MAPPING[this.category] || SPHERE_TYPE_MAPPING[0];
+			return SphereTypeId[this.category] || SphereTypeId[0];
 		},
 		xCoord () {
 			const { category } = this;
