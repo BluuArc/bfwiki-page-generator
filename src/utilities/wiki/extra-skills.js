@@ -4,7 +4,7 @@ import {
 } from './utils';
 
 /**
- * @param {object} skill
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IExtraSkill} skill
  * @param {string[]?} series
  */
 export async function generateExtraSkillTemplate (skill, series = []) {

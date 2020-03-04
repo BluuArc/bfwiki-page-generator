@@ -5,7 +5,6 @@ import {
 import {
 	ELEMENT_NAME_MAPPING,
 	MAX_LEVEL_MAPPING,
-	SP_CATEGORY_MAPPING,
 } from '@/utilities/bf-core/constants';
 import {
 	extractAttackingDamageFrames,
@@ -28,11 +27,14 @@ import {
 	getSpDescription,
 	spCodeToIndex,
 } from '@/utilities/bf-core/spEnhancements';
+import { TargetArea } from '@bluuarc/bfmt-utilities/dist/datamine-types';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
+import { getEffectId } from '@bluuarc/bfmt-utilities/dist/buffs';
 import { getEvolutions } from '@/utilities/bf-core/units';
 import getLogger from '@/utilities/Logger';
 import { getNumberOrDefault } from '@/utilities/utils';
+import { getSpCategoryName } from '@bluuarc/bfmt-utilities/dist/sp-enhancements';
 
 const logger = getLogger('generateUnitTemplate');
 
@@ -56,8 +58,12 @@ const logger = getLogger('generateUnitTemplate');
  */
 
 /**
- * @param {string} prop
- * @param {object} unit
+ * @typedef {{ skills: import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry[] }} DatabaseSpEnhancementEntry
+ */
+
+/**
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').UnitAnimationKey} prop
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {number}
  */
 function getAnimationForProperty (prop, unit) {
@@ -69,8 +75,8 @@ function getAnimationForProperty (prop, unit) {
 }
 
 /**
- * @param {string} prop
- * @param {object} unit
+ * @param {'attack'|'skill'} prop
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {{ movespeed: number, movetype: string, speedtype: string }}
  */
 function getMoveSpeedForProperty (prop, unit) {
@@ -85,8 +91,8 @@ function getMoveSpeedForProperty (prop, unit) {
 }
 
 /**
- * @param {object} unit
- * @param {object} spData
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @param {DatabaseSpEnhancementEntry} spData
  * @param {string} burstProp
  */
 function getExtraAttackInfo (unit, burstProp, spData) {
@@ -130,8 +136,8 @@ function getExtraAttackInfo (unit, burstProp, spData) {
 
 /**
  * @param {string} burstProp
- * @param {object} unit
- * @param {object} spData
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @param {DatabaseSpEnhancementEntry} spData
  * @returns {WikiDamageFramesEntry[]}
  */
 function getBurstFrameData (burstProp, unit, spData) {
@@ -143,7 +149,7 @@ function getBurstFrameData (burstProp, unit, spData) {
 		const lastLevel = getBurstLevelEntry(unit[burstProp]);
 		const attackingFrames = extractAttackingDamageFrames(unit[burstProp]['damage frames']);
 		const applyEffectDataToFrame = (frame, correspondingEffect) => {
-			frame.target = (correspondingEffect['target area'] === 'aoe' && !correspondingEffect['random attack']) ? 'A' : '1';
+			frame.target = (correspondingEffect['target area'] === TargetArea.Aoe && !correspondingEffect['random attack']) ? 'A' : '1';
 			if (!isNaN(correspondingEffect.hits)) {
 				frame.hits = +correspondingEffect.hits;
 			}
@@ -171,7 +177,7 @@ function getBurstFrameData (burstProp, unit, spData) {
 }
 
 /**
- * @param {object} stats
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnitStatsEntry} stats
  * @param {string} statProp
  * @returns {number}
  */
@@ -183,8 +189,8 @@ function getStatEntryOrAverage (stats, statProp) {
 
 /**
  * @param {string} type
- * @param {object} unit
- * @returns {{ hp: number, atk: number, def: number, rec: number }}
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @returns {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnitStatsEntry}
  */
 function getStatEntriesForType (type, unit) {
 	const result = {
@@ -205,8 +211,8 @@ function getStatEntriesForType (type, unit) {
 
 /**
  * @param {string} type
- * @param {object} unit
- * @param {object} spData
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @param {DatabaseSpEnhancementEntry} spData
  * @returns {{ dc: number, desc: string, gauge: number, name: string, attacks: WikiDamageFramesEntry[], type: "Offense"|"Heal"|"Support" }}
  */
 function getBurstInfo (type, unit, spData) {
@@ -219,6 +225,9 @@ function getBurstInfo (type, unit, spData) {
 		type: '',
 	};
 	if (unit[type]) {
+		/**
+		 * @type {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst}
+		 */
 		const burstEntry = unit[type];
 		result.attacks = getBurstFrameData(type, unit, spData);
 		result.name = burstEntry.name;
@@ -232,7 +241,7 @@ function getBurstInfo (type, unit, spData) {
 			/**
 			 * @type {string[]}
 			 */
-			const presentProcs = unit[type]['damage frames'].map(frame => !isNaN(frame['proc id']) ? frame['proc id'] : frame['unknown proc id']);
+			const presentProcs = burstEntry['damage frames'].map(frame => getEffectId(frame));
 			result.type = presentProcs.some(id => +id === 2 || +id === 3) ? 'Heal' : 'Support';
 		}
 	}
@@ -240,8 +249,8 @@ function getBurstInfo (type, unit, spData) {
 }
 
 /**
- * @param {object} unit
- * @returns {Promise<object>}
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @returns {Promise<DatabaseSpEnhancementEntry>}
  */
 function getSpData (unit) {
 	return bfDatabase.then(worker => worker.getById({
@@ -253,7 +262,7 @@ function getSpData (unit) {
 
 /**
  * @param {string|number} id
- * @returns {Promise<object>}
+ * @returns {Promise<import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst>}
  */
 function getBurstData (id) {
 	return bfDatabase.then(worker => worker.getById({
@@ -264,12 +273,15 @@ function getBurstData (id) {
 }
 
 /**
- * @param {object} spData
+ * @param {DatabaseSpEnhancementEntry} spData
  * @returns {import('./utils').WikiDataPair}
  */
 async function generateSpData (spData) {
 	const result = [];
 	if (spData && Array.isArray(spData.skills)) {
+		/**
+		 * @type {{ [x: string]: import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry[] }}
+		 */
 		const skillsByCategory = spData.skills.reduce((acc, feskillEntry) => {
 			if (!acc[feskillEntry.category]) {
 				acc[feskillEntry.category] = [];
@@ -282,7 +294,7 @@ async function generateSpData (spData) {
 			.forEach((categoryKey, i) => {
 				const entries = skillsByCategory[categoryKey];
 				const baseKey = `|omniskill${i + 1}_`;
-				result.push([`${baseKey}cat`, SP_CATEGORY_MAPPING[categoryKey]]);
+				result.push([`${baseKey}cat`, getSpCategoryName(categoryKey)]);
 				entries.forEach((feskillEntry, i) => {
 					const baseSkillKey = `${baseKey}${i + 1}_`;
 					const hasDependency = !!feskillEntry.dependency;
@@ -298,7 +310,7 @@ async function generateSpData (spData) {
 }
 
 /**
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateMovementData (unit) {
@@ -317,7 +329,7 @@ function generateMovementData (unit) {
 }
 
 /**
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateStatData (unit) {
@@ -357,7 +369,7 @@ function generateStatData (unit) {
 }
 
 /**
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateLsData (unit) {
@@ -373,7 +385,7 @@ function generateLsData (unit) {
 }
 
 /**
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateEsData (unit) {
@@ -395,8 +407,8 @@ function generateEsData (unit) {
 
 /**
  * @param {string} type valid types include bb, sbb, and ubb
- * @param {object} unit
- * @param {object} spData
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @param {DatabaseSpEnhancementEntry} spData
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateBurstDataForBurstType (type, unit, spData) {
@@ -433,7 +445,7 @@ function generateBurstDataForBurstType (type, unit, spData) {
 }
 
 /**
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateMovementDataForNormalAttacks (unit) {
@@ -448,7 +460,7 @@ function generateMovementDataForNormalAttacks (unit) {
 }
 
 /**
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateFlavorText (unit) {
@@ -477,7 +489,7 @@ async function generateFlavorText (unit) {
 }
 
 /**
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @returns {Promise<import('./utils').WikiDataPair[]>}
  */
 async function generateEvolutionData (unit) {
@@ -508,9 +520,9 @@ async function generateEvolutionData (unit) {
 }
 
 /**
- * @param {object} primaryUnit
- * @param {object} bondUnit
- * @param {object} bondBurst
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} primaryUnit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} bondUnit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst} bondBurst
  * @returns {import('./utils').WikiDataPair[]}
  */
 function generateBondData (primaryUnit, bondUnit, bondBurst) {
@@ -536,8 +548,8 @@ function generateBondData (primaryUnit, bondUnit, bondBurst) {
 }
 
 /**
- * @param {object} unit
- * @param {object} bondUnit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} bondUnit
  * @param {string|number} bondBurstId
  */
 export async function generateUnitTemplate (unit, bondUnit, bondBurstId) {
@@ -592,7 +604,7 @@ ${generateTemplateBody(templateData)}
 /**
  * @param {string} code
  * @param {import('../bf-core/spEnhancements').SpEntry[]} spEntries
- * @param {object} unit
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  */
 export function generateSpTemplate (code, spEntries, unit) {
 	const spWikiEntries = code.split('').reduce((acc, entryCode, i) => {

@@ -99,11 +99,13 @@ export default {
 												"img details";
 	grid-column-gap: 0.5em;
 	cursor: pointer;
+	height: 100%;
 
 	.unit-image {
 		grid-area: img;
 		width: 56px;
 		height: 56px;
+		align-self: center;
 	}
 
 	.unit-title {
@@ -114,6 +116,7 @@ export default {
 	.unit-details {
 		grid-area: details;
 		justify-content: space-between;
+		align-self: flex-end;
 	}
 
 	&:hover {

@@ -2,7 +2,9 @@ import {
 	extractAttackingDamageFrames,
 	getBurstLevelEntry,
 } from '@/utilities/bf-core/bursts';
+import { TargetArea } from '@bluuarc/bfmt-utilities/dist/datamine-types';
 import { generateTemplateBody } from './utils';
+import { getEffectId } from '@bluuarc/bfmt-utilities/dist/buffs';
 
 /**
  * @description mapping of elements joined in alphabetical order to DBB synergy name
@@ -69,11 +71,10 @@ const SYNERGY_NAME_TO_DESCRIPTION_MAPPING = {
  */
 
 /**
- * @param {object} damageFramesEntry
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IDamageFramesEntry} damageFramesEntry
  * @returns {WikiDamageFramesEntry}
  */
 export function getDamageFrames (damageFramesEntry) {
-	// TODO: refactor units generator to use this
 	const result = {
 		distribute: '',
 		effectdelay: '',
@@ -96,7 +97,7 @@ export function getDamageFrames (damageFramesEntry) {
 }
 
 /**
- * @param {object} burst
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst} burst
  * @returns {WikiDamageFramesEntry[]}
  */
 export function getBurstFrameData (burst) {
@@ -108,7 +109,7 @@ export function getBurstFrameData (burst) {
 		const lastLevel = getBurstLevelEntry(burst);
 		const attackingFrames = extractAttackingDamageFrames(burst['damage frames']);
 		const applyEffectDataToFrame = (frame, correspondingEffect) => {
-			frame.target = (correspondingEffect['target area'] === 'aoe' && !correspondingEffect['random attack']) ? 'A' : '1';
+			frame.target = (correspondingEffect['target area'] === TargetArea.Aoe && !correspondingEffect['random attack']) ? 'A' : '1';
 			if (!isNaN(correspondingEffect.hits)) {
 				frame.hits = +correspondingEffect.hits;
 			}
@@ -127,7 +128,7 @@ export function getBurstFrameData (burst) {
 }
 
 /**
- * @param {object} burst
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst} burst
  * @returns {{ dc: number, desc: string, gauge: number, name: string, attacks: WikiDamageFramesEntry[], type: "Offense"|"Heal"|"Support" }}
  */
 function getBurstInfo (burst) {
@@ -152,7 +153,7 @@ function getBurstInfo (burst) {
 			/**
 			 * @type {string[]}
 			 */
-			const presentProcs = burst['damage frames'].map(frame => !isNaN(frame['proc id']) ? frame['proc id'] : frame['unknown proc id']);
+			const presentProcs = burst['damage frames'].map(frame => getEffectId(frame));
 			result.type = presentProcs.some(id => +id === 2 || +id === 3) ? 'Heal' : 'Support';
 		}
 	}
@@ -160,7 +161,7 @@ function getBurstInfo (burst) {
 }
 
 /**
- * @param {object} burst
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst} burst
  * @returns {import('./utils').WikiDataPair[]}
  */
 export function generateDbbData (burst) {
@@ -191,8 +192,8 @@ export function generateDbbData (burst) {
 }
 
 /**
- * @param {string} element1
- * @param {string} element2
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').UnitElement} element1
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').UnitElement} element2
  */
 export function getSynergyData (element1, element2) {
 	const elementPair = element1 < element2 ? `${element1}${element2}` : `${element2}${element1}`;
@@ -202,7 +203,9 @@ export function getSynergyData (element1, element2) {
 }
 
 /**
- * @param {object} burst
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IBraveBurst} burst
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit1
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit2
  */
 export function generateDbbTemplate (burst, unit1, unit2) {
 	const synergyInfo = getSynergyData((unit1 && unit1.element) || '', (unit2 && unit2.element) || '');

@@ -1,10 +1,17 @@
 /**
- * @param {object} item
- * @param {object} db
+ * @typedef {{ [key: number]: import("@bluuarc/bfmt-utilities/dist/datamine-types").IItem }} ItemDb
+ */
+
+/**
+ * @param {import("@bluuarc/bfmt-utilities/dist/datamine-types").IItem} item
+ * @param {ItemDb} db
  * @returns {{ [id: string]: number }} count of each item required by ID
  */
 export async function getCraftablesInRecipeOfItem (item, db = {}) {
 	const currentCraftables = {};
+	/**
+	 * @param {import("@bluuarc/bfmt-utilities/dist/datamine-types").IItem} item
+	 */
 	const getCraftablesInRecipeOf = (item) => {
 		if (item && item.recipe && Array.isArray(item.recipe.materials)) {
 			item.recipe.materials.forEach(material => {
@@ -25,11 +32,14 @@ export async function getCraftablesInRecipeOfItem (item, db = {}) {
 }
 
 /**
- * @param {object} item
- * @param {object} db
+ * @param {import("@bluuarc/bfmt-utilities/dist/datamine-types").IItem} item
+ * @param {ItemDb} db
  * @returns {{ materials: { [id: string]: number }, karma: number }} count of each item required by ID
  */
 export function getBaseMaterialsOfItem (item, db = {}) {
+	/**
+	 * @param {import("@bluuarc/bfmt-utilities/dist/datamine-types").IItem} item
+	 */
 	const getBaseMaterialsOf = (item) => {
 		const result = {
 			// key = item id, value = count needed
@@ -71,8 +81,8 @@ export function getBaseMaterialsOfItem (item, db = {}) {
 }
 
 /**
- * @param {object} item
- * @param {object} db
+ * @param {import("@bluuarc/bfmt-utilities/dist/datamine-types").IItem} item
+ * @param {ItemDb} db
  * @returns {{ count: number, id: number, name: string }[]}
  */
 export function getImmediateUsageForItem (item, db = {}) {

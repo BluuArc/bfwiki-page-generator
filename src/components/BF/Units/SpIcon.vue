@@ -11,7 +11,8 @@
 
 <script>
 import GenericSpriteIcon from '@/components/utilities/GenericSpriteIcon';
-import { SP_CATEGORY_MAPPING } from '@/utilities/bf-core/constants';
+import { getSpCategoryName } from '@bluuarc/bfmt-utilities/dist/sp-enhancements';
+
 export default {
 	components: {
 		GenericSpriteIcon,
@@ -27,7 +28,7 @@ export default {
 			return require('@/assets/sphere_icon_hexa.png');
 		},
 		spCategory () {
-			return SP_CATEGORY_MAPPING[this.category];
+			return getSpCategoryName(this.category);
 		},
 		xCoord () {
 			const { category } = this;

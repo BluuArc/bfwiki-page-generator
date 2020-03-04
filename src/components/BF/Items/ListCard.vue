@@ -28,10 +28,11 @@
 </template>
 
 <script>
-import { ITEM_TYPES_NAMES_MAPPING, SPHERE_TYPE_MAPPING } from '@/utilities/bf-core/constants';
 import { DEFAULT_CONTENT_URLS } from '@/utilities/constants';
+import { ITEM_TYPES_NAMES_MAPPING } from '@/utilities/bf-core/constants';
 import ItemIcon from './ItemIcon';
 import SphereTypeIcon from './SphereTypeIcon';
+import { SphereTypeId } from '@bluuarc/bfmt-utilities/dist/datamine-types';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import { getImageUrl } from '@/utilities/bf-core/items';
 
@@ -59,7 +60,7 @@ export default {
 		},
 		sphereType () {
 			const sphereType = this.entry['sphere type'];
-			return !isNaN(sphereType) ? (SPHERE_TYPE_MAPPING[sphereType] || SPHERE_TYPE_MAPPING[0]) : '';
+			return !isNaN(sphereType) ? (SphereTypeId[sphereType] || SphereTypeId[0]) : '';
 		},
 	},
 	props: {

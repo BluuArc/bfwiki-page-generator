@@ -9,7 +9,7 @@
 							Light Mode
 						</v-label>
 						<v-switch
-							class="pl-2"
+							class="ml-2"
 							aria-label="Light Mode"
 							v-model="isLightTheme"
 							hide-details
@@ -29,7 +29,7 @@
 							aria-label="Default Server"
 							name="active-server"
 							mandatory
-							class="pl-2"
+							class="ml-2"
 							v-model="defaultServerIndex"
 						>
 							<v-btn
