@@ -33,7 +33,9 @@ import SpBuilder from '@/components/BF/Units/SpBuilder';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
 import { generateSpTemplate } from '@/utilities/wiki/units';
+import getLogger from '@/utilities/Logger';
 
+const logger = getLogger('UnitsView');
 export default {
 	components: {
 		CopyButton,
@@ -61,6 +63,7 @@ export default {
 			})).then((result = {}) => {
 				const spEntries = Array.isArray(result.skills) ? result.skills : [];
 				this.spEntries = spEntries;
+				logger.debug({ spEntries });
 				return spEntries;
 			});
 		},
