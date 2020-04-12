@@ -1,26 +1,13 @@
-/**
- * @typedef {{ bp: number, desc: string, effects: Array, id: number, level: number, name: string, series: string }} SpEntrySkill
- * @typedef {{ category: string, dependency: string, 'dependency comment': string, id: string, skill: SpEntrySkill }} SpEntry
- */
+import {
+	getAllDependenciesForSpEntry,
+	getAllEntriesThatDependOnSpEntry as getAllEntriesThatDependOnSpEntryAsSkillEntries,
+	getSpEntryWithId,
+	spCodeToIndex,
+	spIndexToCode,
+} from '@bluuarc/bfmt-utilities/dist/sp-enhancements';
 
 /**
- * A-Z = 0-25, a-z = 26+
- * @param {string} char
- */
-export function spCodeToIndex (char) {
-	return char.charCodeAt(0) - ((char < 'a') ? 'A'.charCodeAt(0) : ('a'.charCodeAt(0))) + (char < 'a' ? 0 : 26);
-}
-
-/**
- * A-Z = 0-25, a-z = 26+
- * @param {number} index
- */
-export function spIndexToCode (index) {
-	return String.fromCharCode(index >= 26 ? (index - 26 + 'a'.charCodeAt(0)) : (index + 'A'.charCodeAt(0)));
-}
-
-/**
- * @param {SpEntry} spEntry
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry} spEntry
  */
 export function getSpDescription (spEntry = {}) {
 	const { desc = '', name = '' } = spEntry.skill;
@@ -34,31 +21,8 @@ export function getSpDescription (spEntry = {}) {
 }
 
 /**
- * @param {{ id: string } | string?} id
- */
-export function getSpEntryId (id = '') {
-	/**
-	 * @type {string}
-	 */
-	let spId = id;
-	if (typeof spId === 'object') {
-		spId = id.id; // given an spEntry object
-	}
-	return (spId.includes('@') && spId.split('@')[1]) || spId;
-}
-
-/**
- * @param {string} id
- * @param {Array<SpEntry>} spEntries
- */
-export function getSpEntryWithId (id, spEntries = []) {
-	const entryId = getSpEntryId(id);
-	return spEntries.find(s => getSpEntryId(s.id) === entryId);
-}
-
-/**
  * @param {SpEntry} spEntry
- * @param {Array<SpEntry>} allEntries
+ * @param {Array<import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry>} allEntries
  */
 export function getSpDependencyText (spEntry = {}, allEntries = []) {
 	const dependentSpEntry = spEntry.dependency && getSpEntryWithId(spEntry.dependency, allEntries);
@@ -69,43 +33,27 @@ export function getSpDependencyText (spEntry = {}, allEntries = []) {
 }
 
 /**
- * @param {SpEntry} spEntry
- * @param {Array<SpEntry>} allEntries
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry} spEntry
+ * @param {Array<import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry>} allEntries
  * @returns {Array<string>} Array of SP Entries as character codes
  */
 export function getAllDependenciesFromSpEntry (spEntry = {}, allEntries = []) {
-	const dependencies = [];
-	if (spEntry.dependency) {
-		const dependencyId = getSpEntryId(spEntry.dependency);
-		const dependencyIndex = allEntries.findIndex(s => getSpEntryId(s.id).toString() === dependencyId);
-		if (dependencyIndex > -1) {
-			dependencies.push(spIndexToCode(dependencyIndex));
-			const subDependencies = getAllDependenciesFromSpEntry(allEntries[dependencyIndex], allEntries);
-			subDependencies.forEach(subDependency => {
-				dependencies.push(subDependency);
-			});
-		}
-	}
-	return dependencies;
+	return getAllDependenciesForSpEntry(spEntry, allEntries)
+		.map(s => spIndexToCode(allEntries.indexOf(s)));
 }
 
 /**
- * @param {SpEntry} spEntry
- * @param {Array<SpEntry>} allEntries
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry} spEntry
+ * @param {Array<import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry>} allEntries
  * @returns {Array<string>} Array of SP Entries as character codes
  */
 export function getAllEntriesThatDependOnSpEntry (spEntry = {}, allEntries = []) {
-	const dependents = allEntries
-		.map((entry, index) => ({ entry, index }))
-		.filter(({ entry }) => entry.dependency && entry.dependency.includes(spEntry.id))
-		.map(({ index }) => spIndexToCode(index));
-	const subDependents = dependents.map(depCode => getAllEntriesThatDependOnSpEntry(allEntries[spCodeToIndex(depCode)], allEntries))
-		.reduce((acc, val) => acc.concat(val), []);
-	return Array.from(new Set(dependents.concat(subDependents)));
+	return getAllEntriesThatDependOnSpEntryAsSkillEntries(spEntry, allEntries)
+		.map(s => spIndexToCode(allEntries.indexOf(s)));
 }
 
 /**
- * @param {Array<SpEntry>} allEntries
+ * @param {Array<import('@bluuarc/bfmt-utilities/dist/datamine-types').ISpEnhancementEntry>} allEntries
  * @param {string} code
  */
 export function getSpCost (allEntries, code = '') {
