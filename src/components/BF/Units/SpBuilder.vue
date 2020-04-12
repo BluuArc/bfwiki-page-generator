@@ -68,9 +68,11 @@ import {
 	getSpCost,
 	getSpDependencyText,
 	getSpDescription,
+} from '@/utilities/bf-core/spEnhancements';
+import {
 	spCodeToIndex,
 	spIndexToCode,
-} from '@/utilities/bf-core/spEnhancements';
+} from '@bluuarc/bfmt-utilities/dist/sp-enhancements';
 import JsonExplorerView from '@/components/Generators/JsonExplorerView';
 import ScopedVariables from '@/components/utilities/ScopedVariables';
 import SpIcon from '@/components/BF/Units/SpIcon';

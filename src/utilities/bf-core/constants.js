@@ -4,6 +4,7 @@ export const ELEMENT_NAME_MAPPING = Object.freeze({
 	fire: 'Fire',
 	light: 'Light',
 	thunder: 'Thunder',
+	water: 'Water',
 });
 
 export const MAX_LEVEL_MAPPING = {

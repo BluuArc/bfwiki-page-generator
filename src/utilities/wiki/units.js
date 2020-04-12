@@ -22,10 +22,13 @@ import {
 	generateTemplateBody,
 } from './utils';
 import {
+	getSpCategoryName,
+	spCodeToIndex,
+} from '@bluuarc/bfmt-utilities/dist/sp-enhancements';
+import {
 	getSpCost,
 	getSpDependencyText,
 	getSpDescription,
-	spCodeToIndex,
 } from '@/utilities/bf-core/spEnhancements';
 import { TargetArea } from '@bluuarc/bfmt-utilities/dist/datamine-types';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
@@ -34,7 +37,6 @@ import { getEffectId } from '@bluuarc/bfmt-utilities/dist/buffs';
 import { getEvolutions } from '@/utilities/bf-core/units';
 import getLogger from '@/utilities/Logger';
 import { getNumberOrDefault } from '@/utilities/utils';
-import { getSpCategoryName } from '@bluuarc/bfmt-utilities/dist/sp-enhancements';
 
 const logger = getLogger('generateUnitTemplate');
 
