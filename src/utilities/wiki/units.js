@@ -571,6 +571,7 @@ function determineArenaAiType (unit) {
 
 		result = Object.keys(ARENA_ENTRIES_BY_TYPE).find((type) => {
 			const result = unitHasEntries(ARENA_ENTRIES_BY_TYPE[type]);
+			// logger.debug('arena ai comparison', { result, type, typeData: ARENA_ENTRIES_BY_TYPE[type], unitAi: ai });
 			return result;
 		});
 	}

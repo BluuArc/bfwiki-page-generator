@@ -118,7 +118,7 @@ export const ARENA_ENTRIES_BY_TYPE = (() => {
 			createArenaEntry(ATTACK_ACTION, 100, ArenaCondition.random, ENEMY_TARGET),
 		],
 		5: [
-			createArenaEntry(SKILL_ACTION, 80, ArenaCondition.hp_50pr_over, PARTY_TARGET),
+			createArenaEntry(SKILL_ACTION, 80, ArenaCondition.hp_50pr_under, PARTY_TARGET),
 			createArenaEntry(SKILL_ACTION, 20, ArenaCondition.hp_min, PARTY_TARGET),
 			createArenaEntry(ATTACK_ACTION, 100, ArenaCondition.random, ENEMY_TARGET),
 		],
