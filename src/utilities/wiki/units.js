@@ -1,11 +1,12 @@
 import {
-	DATA_MAPPING,
-	SERVER_NAME_MAPPING,
-} from '@/utilities/constants';
-import {
+	ARENA_ENTRIES_BY_TYPE,
 	ELEMENT_NAME_MAPPING,
 	MAX_LEVEL_MAPPING,
 } from '@/utilities/bf-core/constants';
+import {
+	DATA_MAPPING,
+	SERVER_NAME_MAPPING,
+} from '@/utilities/constants';
 import {
 	extractAttackingDamageFrames,
 	getAttackingEffectsForEffectsList,
@@ -551,6 +552,34 @@ function generateBondData (primaryUnit, bondUnit, bondBurst) {
 
 /**
  * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
+ * @returns {string}
+ */
+function determineArenaAiType (unit) {
+	let result;
+
+	if (unit.ai) {
+		const { ai } = unit;
+		const ARENA_ENTRY_KEYS = ['action', 'chance%', 'target conditions', 'target type'];
+
+		/**
+		 * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnitArenaAiEntry} entryA
+		 * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnitArenaAiEntry} entryB
+		 * @returns {boolean}
+		 */
+		const arenaEntriesMatch = (entryA, entryB) => ARENA_ENTRY_KEYS.every((key) => entryA[key] === entryB[key]);
+		const unitHasEntries = (entries = []) => entries.every((entry) => !!ai.find((unitAiEntry) => arenaEntriesMatch(unitAiEntry, entry)));
+
+		result = Object.keys(ARENA_ENTRIES_BY_TYPE).find((type) => {
+			const result = unitHasEntries(ARENA_ENTRIES_BY_TYPE[type]);
+			return result;
+		});
+	}
+
+	return result || '';
+}
+
+/**
+ * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} unit
  * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IUnit} bondUnit
  * @param {string|number} bondBurstId
  */
@@ -577,7 +606,7 @@ export async function generateUnitTemplate (unit, bondUnit, bondBurstId) {
 		['|maxlv', MAX_LEVEL_MAPPING[unitRarity] || ''],
 		['|basexp', 21],
 		['|gender', (unit.gender || 'U')[0].toUpperCase()],
-		['|ai', ''],
+		['|ai', determineArenaAiType(unit)],
 		...generateMovementData(unit),
 		...(await generateFlavorText(unit)),
 		...generateStatData(unit),
