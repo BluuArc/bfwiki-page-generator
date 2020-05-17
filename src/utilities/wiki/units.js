@@ -276,6 +276,18 @@ function getBurstData (id) {
 }
 
 /**
+ * @param {string|number} id
+ * @returns {Promise<import('@bluuarc/bfmt-utilities/dist/datamine-types').IItem}
+ */
+function getItemData (id) {
+	return bfDatabase.then(worker => worker.getById({
+		id,
+		server: appLocalStorageStore.serverName,
+		table: DATA_MAPPING.items.key,
+	}));
+}
+
+/**
  * @param {DatabaseSpEnhancementEntry} spData
  * @returns {import('./utils').WikiDataPair}
  */
@@ -510,12 +522,18 @@ async function generateEvolutionData (unit) {
 		);
 		if (currentEntry.mats) {
 			const evoUnits = currentEntry.mats.filter(m => m.type === 'unit').map((entry, i) => [`|evomats${i + 1}`, entry.id]);
-			const evoItems = currentEntry.mats.filter(m => m.type === 'item').map((entry, i) => [`|evoitem${i !== 0 ? (i + 1) : ''}`, entry.id]);
+			const evoItems = currentEntry.mats.filter(m => m.type === 'item').reduce((acc, entry, i) => {
+				return acc.then(async (entries) => {
+					const item = await getItemData(entry.id);
+					entries.push([`|evoitem${i !== 0 ? (i + 1) : ''}`, item.name]);
+					return entries;
+				});
+			}, Promise.resolve([]));
 			results.push(
 				['|evozelcost', getNumberOrDefault(currentEntry.amount)],
 				['|evokarmacost', ''],
 				...evoUnits,
-				...evoItems,
+				...(await evoItems),
 			);
 		}
 	}
