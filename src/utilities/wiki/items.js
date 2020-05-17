@@ -1,8 +1,11 @@
 import {
+	DATA_MAPPING,
+	SERVER_NAME_MAPPING,
+} from '@/utilities/constants';
+import {
 	generateRarityString,
 	generateTemplateBody,
 } from './utils';
-import { DATA_MAPPING } from '@/utilities/constants';
 import { ItemType } from '@bluuarc/bfmt-utilities/dist/datamine-types';
 import appLocalStorageStore from '@/utilities/AppLocalStorageStore';
 import bfDatabase from '@/utilities/BfDatabase/index.client';
@@ -120,11 +123,13 @@ async function generateCraftInto (item) {
  * @param {import('@bluuarc/bfmt-utilities/dist/datamine-types').IItem|import('@bluuarc/bfmt-utilities/dist/datamine-types').ISphere} item
  */
 export async function generateItemTemplate (item) {
+	const isEuropeServer = appLocalStorageStore.serverName === SERVER_NAME_MAPPING.Europe;
 	/**
 	 * @type {import('./utils').WikiDataPair}
 	 */
 	const templateData = [
 		['|unreleased', ''],
+		...(isEuropeServer ? [['|guide_id', item.id]] : []),
 		['|type', (item.type || '').replace(/_/g, '')],
 		['|sphereType', item['sphere type text'] || ''],
 		['|rarity', generateRarityString(item.rarity)],
@@ -146,7 +151,8 @@ export async function generateItemTemplate (item) {
 		...(await generateBaseTotalMats(item)),
 		['|incorrectinfo', ''],
 	];
-	return `{{{{#if:{{{1|}}}|ItemProp|Item}}|prop={{{1|}}}
+	const templateName = !isEuropeServer ? 'Item' : 'ItemEU';
+	return `{{{{#if:{{{1|}}}|ItemProp|${templateName}}}|prop={{{1|}}}
 ${generateTemplateBody(templateData)}
 }}`;
 }
