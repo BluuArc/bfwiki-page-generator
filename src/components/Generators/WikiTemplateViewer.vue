@@ -50,11 +50,17 @@ export default {
 	pre {
     overflow: auto;
     flex: auto;
+		background-color: #F5F5F5;
+
+		.theme--dark & {
+			background-color: black;
+		}
   }
 
   code {
     width: 100%;
     height: auto;
+		background-color: #F5F5F5;
 
     &::before {
       content: '';

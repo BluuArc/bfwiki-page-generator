@@ -304,6 +304,11 @@ export default {
 		position: sticky;
 		bottom: 0;
 		flex: none;
+
+		footer {
+			display: flex;
+			justify-content: center;
+		}
 	}
 }
 </style>
