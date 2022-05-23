@@ -11,7 +11,7 @@
 		"@bluuarc/bfmt-utilities": "^0.4.1",
 		"@fortawesome/fontawesome-free": "^5.15.4",
 		"core-js": "^2.6.12",
-		"dexie": "^2.0.4",
+		"dexie": "^3.2.2",
 		"roboto-fontface": "*",
 		"threads": "^1.7.0",
 		"vue": "^2.6.14",
